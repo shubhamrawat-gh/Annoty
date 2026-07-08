@@ -1,0 +1,19 @@
+{
+  "name": "annoty-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/overlay",
+    "packages/cli",
+    "packages/build-plugins",
+    "demo-site"
+  ],
+  "scripts": {
+    "build:overlay": "npm run build --workspace=packages/overlay",
+    "dev:overlay": "npm run dev --workspace=packages/overlay",
+    "dev:demo": "npm run dev --workspace=demo-site",
+    "build:cli": "npm run build --workspace=packages/cli"
+  },
+  "devDependencies": {
+  }
+}
+
