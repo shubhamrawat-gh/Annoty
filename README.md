@@ -4,15 +4,22 @@ Annoty is an interactive developer overlay and CLI utility designed to bridge th
 
 By allowing developers to inspect and annotate DOM elements directly in the browser during local development, Annoty compiles visual feedback into structured, contextual Markdown prompts that map directly to the corresponding source code files and line numbers.
 
+<p align="center">
+  <img src="./assets/annoty_ss_1.png" alt="Annoty Interface Screenshot 1" width="49%">
+  <img src="./assets/annoty_ss_2.png" alt="Annoty Interface Screenshot 2" width="49%">
+</p>
+
 ---
 
 ## Architectural Features
+
 
 * **Visual DOM Inspection:** Enables element-level click detection and inline annotation overrides without disrupting application-level click handlers or page state.
 * **AST-to-DOM Source Mapping:** Pairs with build plugins to traverse component Abstract Syntax Trees (AST) at compile time, injecting unique location attributes (`data-annoty-source`) onto rendered elements.
 * **Multi-Tier Fallback Resolver:** Resolves source file and line mapping using a prioritized lookup hierarchy (React Fiber, Vue VNodes, Svelte metadata, Astro elements, manual mapping, or semantic CSS selectors).
 * **DOM Sandbox Isolation:** Renders the inspector popup, sidebars, and control toggles inside an isolated Shadow DOM to ensure styles do not bleed into or inherit from the parent application.
 * **Local-First Persistence:** Operates fully offline by default. All annotation states, historical prompt iterations, and group hierarchies reside in browser LocalStorage.
+* **High-Throughput Batch Processing:** Supports simultaneous batch edits. Developers can queue and compile dozens of separate annotations (handling batches of 10+ elements at a time) into a single consolidated instructions prompt.
 * **Cloud Sync Interface:** Supports session token configuration to seamlessly proxy read/write operations through a secure server-side API.
 
 ---
