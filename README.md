@@ -5,9 +5,13 @@ Annoty is an interactive developer overlay and CLI utility designed to bridge th
 By allowing developers to inspect and annotate DOM elements directly in the browser during local development, Annoty compiles visual feedback into structured, contextual Markdown prompts that map directly to the corresponding source code files and line numbers.
 
 <p align="center">
-  <img src="./assets/annoty_ss_1.png" alt="Annoty Interface Screenshot 1" width="49%">
-  <img src="./assets/annoty_ss_2.png" alt="Annoty Interface Screenshot 2" width="49%">
+  <img src="./assets/annoty_ss_1.png" alt="Annoty Interface Overview" width="100%">
 </p>
+
+<p align="center">
+  <img src="./assets/annoty_ss_2.png" alt="Annoty Sidebar and Markdown Prompt Generation" width="100%">
+</p>
+
 
 ---
 
