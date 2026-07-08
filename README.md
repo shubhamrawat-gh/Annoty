@@ -1,63 +1,41 @@
-# Annoty ✏️
+# Annoty
 
-**Annoty** is an interactive browser overlay and developer utility designed to speed up your AI-assisted coding workflow. 
+Annoty is an interactive developer overlay and CLI utility designed to bridge the gap between visual web interfaces and LLM-assisted code editors (such as Claude Code, Cursor, and the Antigravity CLI). 
 
-It allows you to click elements inside your locally running web application, attach notes/instructions directly to them, and compile those annotations into **one consolidated, structured Markdown prompt** to copy and paste into AI agents (like Claude Code, Cursor, ChatGPT, or the Antigravity CLI).
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Local--First-Yes-success?style=flat-square" alt="Local First">
-  <img src="https://img.shields.io/badge/Zero--Network-Free%20Mode-blue?style=flat-square" alt="Zero Network">
-  <img src="https://img.shields.io/badge/Vite--Plugin-React-61dafb?style=flat-square" alt="Vite React Support">
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License MIT">
-</p>
+By allowing developers to inspect and annotate DOM elements directly in the browser during local development, Annoty compiles visual feedback into structured, contextual Markdown prompts that map directly to the corresponding source code files and line numbers.
 
 ---
 
-## ✨ Features
+## Architectural Features
 
-- 🎯 **Visual Selection Mode:** Toggle visual overlay mode and select elements on your page safely without trigger actions or page redirections interrupting your workflow.
-- 🔌 **Vite Build Plugin:** Walks the JSX AST at build-time to inject `data-annoty-source` attributes, enabling click-to-file-line mappings right from your browser DOM.
-- 📂 **Multi-Tier Source Mapping:** Automatically resolves clicked DOM elements back to source code locations:
-  - **Tier 1 (React & Preact):** Inspects internal fiber/vnode elements in dev mode to extract component paths, line, and column numbers.
-  - **Tier 2 (Framework-Native):** Inspects Vue VNodes, Svelte metadata (`__svelte_meta`), or Astro source attributes.
-  - **Tier 3 (Universal Data Attribute):** Reads manual `data-annoty-source="src/components/Header.tsx:12"` markers.
-  - **Tier 4 (CSS Selector Fallback):** Generates resilient CSS selector paths wrapped in semantic HTML landmark contexts.
-- 📦 **Encapsulated UI:** Renders toggle buttons, popups, and sidebar panels inside a **Shadow DOM** to prevent CSS styling leakage or collision with your application.
-- 💾 **Local-First & Offline:** Run completely offline. No accounts or databases required; everything is stored securely in browser `LocalStorage`.
-- 🔄 **Local Backups:** Export and import your annotations and histories locally as JSON files.
-- ☁️ **Cloud-Sync Ready:** Easily links to a privately hosted cloud sync backend when you run `annoty login`.
+* **Visual DOM Inspection:** Enables element-level click detection and inline annotation overrides without disrupting application-level click handlers or page state.
+* **AST-to-DOM Source Mapping:** Pairs with build plugins to traverse component Abstract Syntax Trees (AST) at compile time, injecting unique location attributes (`data-annoty-source`) onto rendered elements.
+* **Multi-Tier Fallback Resolver:** Resolves source file and line mapping using a prioritized lookup hierarchy (React Fiber, Vue VNodes, Svelte metadata, Astro elements, manual mapping, or semantic CSS selectors).
+* **DOM Sandbox Isolation:** Renders the inspector popup, sidebars, and control toggles inside an isolated Shadow DOM to ensure styles do not bleed into or inherit from the parent application.
+* **Local-First Persistence:** Operates fully offline by default. All annotation states, historical prompt iterations, and group hierarchies reside in browser LocalStorage.
+* **Cloud Sync Interface:** Supports session token configuration to seamlessly proxy read/write operations through a secure server-side API.
 
 ---
 
-## 🚀 Quick Start (Under 2 Minutes)
+## Integration Workflow
 
-### 1. Initialize Annoty in your project
-Run the initialization utility from the root of your frontend project folder:
+### 1. Project Initialization
+
+Execute the CLI utility from the root of your application directory:
 
 ```bash
 npx annoty init
 ```
 
-*This automatically copies the dev overlay script into your asset directory (e.g. `public/overlay.js`) and injects the following tag before the closing `</body>` tag of your main HTML file:*
+The initialization process detects your project's HTML entry point, copies the compiled client-side library (`overlay.js`) to your public assets directory, and injects the corresponding script tag:
+
 ```html
 <script src="/overlay.js" data-annoty-mode="dev"></script>
 ```
 
-### 2. Run your dev server
-Start your local dev server (e.g. `npm run dev`). Annoty will detect localhost and bootstrap the floating toggle button.
+### 2. Vite AST Plugin Integration (Optional)
 
-### 3. Annotate & Compile
-1. Click the **floating edit button** (or press `Alt + A` / `Alt + S`) to open the overlay.
-2. Click any UI element you wish to modify.
-3. Type your instructions (e.g. *"Change this button to emerald green with 12px vertical padding"*).
-4. Click **Generate Prompt** in the sidebar to review the compiled Markdown and click **Copy to Clipboard**.
-5. Paste the structured prompt directly into your AI coding tool!
-
----
-
-## 🔌 Integrating the Build Plugin (Vite + React)
-
-For precise compiler-level source-file mapping, install `@annoty/build-plugins` and configure it in your `vite.config.ts`. This injects file paths and line numbers onto elements automatically during local development.
+To enable compiler-level precision for file and line number mapping, install the build plugin package and configure it in your Vite development pipeline:
 
 ```typescript
 import { defineConfig } from 'vite';
@@ -67,26 +45,36 @@ import { annotyReact } from '@annoty/build-plugins';
 export default defineConfig({
   plugins: [
     react(),
-    annotyReact() // Only transforms files during local development (Vite 'serve')
+    annotyReact()
   ]
 });
 ```
 
+*Note: The plugin walks the JSX AST only during local development (Vite `serve` mode) and will bypass file transformations during production builds.*
+
 ---
 
-## 🧹 Codebase Hygiene & Cleanup
+## Production Security & Cleanup
 
-Before compiling production builds or committing code, run the cleanup tool to strip all Annoty tags and overlay assets from your project:
+To guarantee that no development assets or source-file attributes leak into production environments, Annoty implements two security layers:
+
+### Sandbox Guardrail
+The browser overlay script halts execution and disables itself unless served from a loopback address (`localhost`, `127.0.0.1`) or explicitly initialized with the dev-mode attribute.
+
+### Workspace Cleanup
+Before compiling production bundles or running git checks, clean the workspace to remove the injected scripts and local assets:
 
 ```bash
 npx annoty clean
 ```
 
+This strips all injected HTML tags and deletes the copy of `overlay.js` from the public directory.
+
 ---
 
-## 💡 Markdown Prompt Sample
+## Prompt Structure Reference
 
-Annoty compiles your changes into a structured prompt that AI tools can read and execute instantly:
+Annoty compiles annotations into a structured prompt schema designed to be parsed and executed by LLM agents:
 
 ```markdown
 ## UI Change Requests (2 elements)
@@ -94,31 +82,41 @@ Annoty compiles your changes into a structured prompt that AI tools can read and
 ### File: src/components/Hero.tsx
 
 **1. Line 14** — `<button class="cta-primary">Get Started</button>`
-Increase horizontal padding to 24px and add a subtle hover scale animation.
+Increase horizontal padding to 24px and add a hover scale transition.
 
 ### File: src/components/Pricing.tsx
 
 **2. Line 32** — `<div class="price-tag">$29/mo</div>`
-Make the font weight bold and color dark slate gray (#1e293b).
+Set font weight to 600 and change color to slate-800 (#1e293b).
 
 ---
 ### Guidance for this batch
-- **spacing**: Add padding/margins using consistent units.
-- **color**: Apply hex colors or Tailwind theme classes if configured.
+- **spacing**: Apply padding/margins using consistent Tailwind configuration values.
+- **color**: Use hex codes matching our color palette tokens.
 
-Apply each change at its specified file/line. Do not modify unrelated code.
+Apply each change at its specified file/line. Search the codebase for the element using its text content and selector context if line numbers are approximate. Do not modify unrelated code.
 ```
 
 ---
 
-## 🛡️ Safety Guardrails
+## Technical Specifications
 
-To prevent Annoty from leaking into production, the overlay script contains a strict safety guardrail:
-- It **only activates** if served from `localhost` / `127.0.0.1` **OR** if the script tag has `data-annoty-mode="dev"` explicitly set.
-- Otherwise, it behaves as a silent no-op.
+### CLI Reference
+
+| Command | Option | Description |
+|---|---|---|
+| `login` | `--dashboard <url>` | Authenticate local terminal via loopback server |
+| `logout` | None | Clear local credentials and sign out of session |
+| `init` | None | Scaffold project and inject target script tag |
+| `status` | None | Inspect injection status, local assets, and active mode |
+| `doctor` | None | Run Node environment and port diagnostics |
+| `clean` | None | Strip script tags and delete public assets |
+
+### File Portability (Local-First Backup)
+Developers using the offline local-first configuration can export their annotations and prompt history as a JSON file via the sidebar interface, making it easy to migrate sessions across different browsers.
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is open-source software licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
