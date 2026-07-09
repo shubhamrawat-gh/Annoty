@@ -28,15 +28,40 @@ By allowing developers to inspect and annotate DOM elements directly in the brow
 
 ---
 
+## Installation & Setup
+
+Annoty requires Node.js v18.0.0+ (which includes native `fetch` support). You can choose to install the CLI globally on your system or execute commands on-demand.
+
+### Global Installation (Recommended)
+Install the package globally to register the shorthand `annoty` binary on your path:
+
+```bash
+npm install -g annoty-cli
+```
+
+### On-Demand Runner
+Execute commands directly without permanent installation:
+
+```bash
+npx annoty-cli <command>
+```
+
+---
+
 ## Integration Workflow
 
 ### 1. Project Initialization
 
-Execute the CLI utility from the root of your application directory:
+Execute the initialization command from the root of your application directory:
 
 ```bash
+# Using global installation:
+annoty init
+
+# Using on-demand runner:
 npx annoty-cli init
 ```
+
 
 
 The initialization process detects your project's HTML entry point, copies the compiled client-side library (`overlay.js`) to your public assets directory, and injects the corresponding script tag:
@@ -77,6 +102,10 @@ The browser overlay script halts execution and disables itself unless served fro
 Before compiling production bundles or running git checks, clean the workspace to remove the injected scripts and local assets:
 
 ```bash
+# Using global installation:
+annoty clean
+
+# Using on-demand runner:
 npx annoty-cli clean
 ```
 
