@@ -34,21 +34,21 @@ Annoty requires Node.js v18.0.0+ (which includes native `fetch` support). You ca
 
 > [!TIP]
 > **Running the commands:**
-> - **Global Installation:** If you installed the package globally via `npm install -g annoty-cli`, use `annoty <command>` (e.g., `annoty init`).
-> - **On-Demand (npx):** If you prefer running it on-the-fly without global installation, use `npx annoty-cli <command>` (e.g., `npx annoty-cli init`). Do *not* run `npx annoty <command>` as `annoty` is not the registered package name on npm.
+> - **Global Installation:** If you installed the package globally via `npm install -g annoty`, use `annoty <command>` (e.g., `annoty init`).
+> - **On-Demand (npx):** If you prefer running it on-the-fly without global installation, use `npx annoty <command>` (e.g., `npx annoty init`).
 
 ### Global Installation (Recommended)
 Install the package globally to register the shorthand `annoty` binary on your path:
 
 ```bash
-npm install -g annoty-cli
+npm install -g annoty
 ```
 
 ### On-Demand Runner
 Execute commands directly without permanent installation:
 
 ```bash
-npx annoty-cli <command>
+npx annoty <command>
 ```
 
 ---
@@ -64,7 +64,7 @@ Execute the initialization command from the root of your application directory:
 annoty init
 
 # Using on-demand runner:
-npx annoty-cli init
+npx annoty init
 ```
 
 
@@ -111,7 +111,7 @@ Before compiling production bundles or running git checks, clean the workspace t
 annoty clean
 
 # Using on-demand runner:
-npx annoty-cli clean
+npx annoty clean
 ```
 
 
