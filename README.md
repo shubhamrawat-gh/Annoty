@@ -35,8 +35,9 @@ By allowing developers to inspect and annotate DOM elements directly in the brow
 Execute the CLI utility from the root of your application directory:
 
 ```bash
-npx annoty init
+npx annoty-cli init
 ```
+
 
 The initialization process detects your project's HTML entry point, copies the compiled client-side library (`overlay.js`) to your public assets directory, and injects the corresponding script tag:
 
@@ -76,8 +77,9 @@ The browser overlay script halts execution and disables itself unless served fro
 Before compiling production bundles or running git checks, clean the workspace to remove the injected scripts and local assets:
 
 ```bash
-npx annoty clean
+npx annoty-cli clean
 ```
+
 
 This strips all injected HTML tags and deletes the copy of `overlay.js` from the public directory.
 
