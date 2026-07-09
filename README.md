@@ -32,6 +32,11 @@ By allowing developers to inspect and annotate DOM elements directly in the brow
 
 Annoty requires Node.js v18.0.0+ (which includes native `fetch` support). You can choose to install the CLI globally on your system or execute commands on-demand.
 
+> [!TIP]
+> **Running the commands:**
+> - **Global Installation:** If you installed the package globally via `npm install -g annoty-cli`, use `annoty <command>` (e.g., `annoty init`).
+> - **On-Demand (npx):** If you prefer running it on-the-fly without global installation, use `npx annoty-cli <command>` (e.g., `npx annoty-cli init`). Do *not* run `npx annoty <command>` as `annoty` is not the registered package name on npm.
+
 ### Global Installation (Recommended)
 Install the package globally to register the shorthand `annoty` binary on your path:
 
