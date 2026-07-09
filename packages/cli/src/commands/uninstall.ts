@@ -31,7 +31,7 @@ export async function uninstallCommand() {
 
     console.log(pc.bold(pc.green('\n✓ Annoty configurations successfully cleared!')));
     console.log(pc.cyan('\nTo complete the removal, run this command in your terminal:'));
-    console.log(pc.bold(pc.white('  npm uninstall -g annoty-cli\n')));
+    console.log(pc.bold(pc.white('  npm uninstall -g annoty\n')));
   } catch (err: any) {
     console.log(pc.red(`\n✗ Error during uninstall: ${err.message}\n`));
     process.exit(1);

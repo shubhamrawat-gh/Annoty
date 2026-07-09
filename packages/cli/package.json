@@ -1,6 +1,6 @@
 {
   "name": "annoty",
-  "version": "1.0.5",
+  "version": "1.0.10",
   "description": "Annoty CLI tool for authentication and project initialization",
 
   "type": "module",
