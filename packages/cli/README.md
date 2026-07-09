@@ -1,6 +1,6 @@
 # Annoty CLI
 
-The Annoty CLI (`annoty-cli`) is a developer utility designed to manage visual annotations and codebase instrumentation. It automates local script injection, manages offline/cloud operation modes, and runs diagnostics on your local development workspace.
+The Annoty CLI (`annoty`) is a developer utility designed to manage visual annotations and codebase instrumentation. It automates local script injection, manages offline/cloud operation modes, and runs diagnostics on your local development workspace.
 
 ---
 
@@ -170,7 +170,7 @@ annoty uninstall
 * **Symptom:** `npx` runs an outdated version of the package.
 * **Resolution:** Clear execution caches by targeting the latest package explicitly:
   ```bash
-  npx annoty-cli@latest <command>
+  npx annoty@latest <command>
   ```
 
 ### Loopback port conflicts

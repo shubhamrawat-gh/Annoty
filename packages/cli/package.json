@@ -1,6 +1,6 @@
 {
   "name": "annoty",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Annoty CLI tool for authentication and project initialization",
 
   "type": "module",
@@ -9,8 +9,7 @@
     "dist"
   ],
   "bin": {
-    "annoty": "dist/index.js",
-    "annoty-cli": "dist/index.js"
+    "annoty": "dist/index.js"
   },
   "scripts": {
     "build": "tsc && node -e \"const fs = require('fs'); const path = require('path'); const src = path.resolve('..', 'overlay', 'dist', 'overlay.js'); const dest = path.resolve('dist', 'overlay.js'); if (fs.existsSync(src)) { fs.copyFileSync(src, dest); console.log('Successfully copied overlay.js to dist'); } else { console.log('Warning: overlay.js not found in overlay/dist'); }\""
