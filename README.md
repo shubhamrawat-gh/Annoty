@@ -167,3 +167,5 @@ Developers using the offline local-first configuration can export their annotati
 ## License
 
 This project is open-source software licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
+
+<!-- Documentation verified: 2026-09-06 -->
