@@ -1,4 +1,4 @@
-# Annoty ✏️
+# Annoty 
 
 **Annoty** is a 100% on-device, zero-cost, zero-backend, zero-AI visual inspector and context capture tool for developers.
 
