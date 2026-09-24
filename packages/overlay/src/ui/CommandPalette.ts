@@ -44,10 +44,10 @@ export class CommandPalette {
     container.style.cssText = `
       width: 520px;
       max-width: 90vw;
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+      background: #001e2b;
+      border: 1px solid #1c2d38;
+      border-radius: 12px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px #2b4352;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -59,12 +59,12 @@ export class CommandPalette {
     this.input.style.cssText = `
       width: 100%;
       box-sizing: border-box;
-      background: #0d1117;
+      background: #041620;
       border: none;
-      border-bottom: 1px solid #30363d;
+      border-bottom: 1px solid #1c2d38;
       padding: 14px 18px;
       font-size: 14px;
-      color: #c9d1d9;
+      color: #ffffff;
       outline: none;
       font-family: inherit;
     `;
@@ -164,7 +164,7 @@ export class CommandPalette {
     this.listEl.innerHTML = '';
     if (this.filteredCommands.length === 0) {
       const empty = document.createElement('div');
-      empty.style.cssText = 'padding: 16px 20px; font-size: 13px; color: #8b949e; text-align: center;';
+      empty.style.cssText = 'padding: 16px 20px; font-size: 13px; color: #a8b3bc; text-align: center;';
       empty.textContent = 'No matching commands found';
       this.listEl.appendChild(empty);
       return;
@@ -179,8 +179,8 @@ export class CommandPalette {
         justify-content: space-between;
         padding: 9px 18px;
         cursor: pointer;
-        background: ${isSelected ? '#1f6feb22' : 'transparent'};
-        border-left: 3px solid ${isSelected ? '#58a6ff' : 'transparent'};
+        background: ${isSelected ? 'rgba(0, 237, 100, 0.12)' : 'transparent'};
+        border-left: 3px solid ${isSelected ? '#00ed64' : 'transparent'};
         transition: background 0.1s ease;
       `;
 
@@ -193,7 +193,7 @@ export class CommandPalette {
       tag.style.cssText = `
         font-size: 10px;
         text-transform: uppercase;
-        color: #8b949e;
+        color: #7c8c9a;
         font-family: ui-monospace, SFMono-Regular, monospace;
         letter-spacing: 0.5px;
       `;
@@ -202,7 +202,7 @@ export class CommandPalette {
       const title = document.createElement('span');
       title.style.cssText = `
         font-size: 13px;
-        color: ${isSelected ? '#58a6ff' : '#c9d1d9'};
+        color: ${isSelected ? '#00ed64' : '#ffffff'};
         font-weight: 500;
       `;
       title.textContent = cmd.title;
@@ -216,11 +216,11 @@ export class CommandPalette {
         const kbd = document.createElement('kbd');
         kbd.style.cssText = `
           font-size: 11px;
-          background: #21262d;
-          border: 1px solid #30363d;
+          background: #092532;
+          border: 1px solid #1c2d38;
           border-radius: 4px;
           padding: 2px 6px;
-          color: #8b949e;
+          color: #a8b3bc;
           font-family: ui-monospace, SFMono-Regular, monospace;
         `;
         kbd.textContent = cmd.shortcut;
