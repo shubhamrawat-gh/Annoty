@@ -16,8 +16,8 @@ const program = new Command();
 
 program
   .name('annoty')
-  .description('CLI tool for Annoty — Auth, Diagnostics, and Cleanups')
-  .version('1.0.4');
+  .description('100% on-device visual inspector, style diff engine, and context compiler CLI')
+  .version('1.1.0');
 
 program
   .command('login')

@@ -1,7 +1,7 @@
 {
   "name": "annoty",
-  "version": "1.0.11",
-  "description": "Annoty CLI tool for authentication and project initialization",
+  "version": "1.1.0",
+  "description": "100% on-device visual inspector, style diff engine, and context compiler CLI",
   "type": "module",
   "license": "MIT",
   "keywords": [
