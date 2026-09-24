@@ -1,0 +1,12 @@
+{
+  "framework": "react",
+  "sourceRoot": "src",
+  "devPort": 5173,
+  "captureScreenshots": true,
+  "includeComputedStyles": true,
+  "responsivePresets": [
+    { "name": "Mobile", "width": 375, "height": 667 },
+    { "name": "Tablet", "width": 768, "height": 1024 },
+    { "name": "Desktop", "width": 1440, "height": 900 }
+  ]
+}

@@ -117,11 +117,18 @@ export class ElementPicker {
     }
   }
 
+  public highlightElement(el: HTMLElement): void {
+    this.updateHighlightPosition(el);
+  }
+
+  public clearHighlight(): void {
+    this.highlightEl.style.display = 'none';
+    this.currentHovered = null;
+  }
+
   private updateHighlightPosition(el: HTMLElement): void {
     try {
       const rect = el.getBoundingClientRect();
-      
-      // Position the highlight overlay
       this.highlightEl.style.width = `${rect.width}px`;
       this.highlightEl.style.height = `${rect.height}px`;
       this.highlightEl.style.top = `${rect.top}px`;

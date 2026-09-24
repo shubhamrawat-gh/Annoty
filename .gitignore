@@ -9,3 +9,12 @@ build/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
+scratch/
+.agents/
+apps/
+supabase/
+.mcp.json
+mcp_config.json
+skills-lock.json
+open_sourcing_plan.md
+clidocs.md

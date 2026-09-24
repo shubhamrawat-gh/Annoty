@@ -55,17 +55,15 @@ export interface VuePluginOptions {
 export function annotyVue(options: VuePluginOptions = {}): Plugin {
   const enabled = options.enabled !== false;
   let projectRoot = process.cwd();
-  let isDev = false;
 
   return {
     name: 'vite-plugin-annoty-vue',
     enforce: 'pre',
     configResolved(config) {
       projectRoot = config.root || process.cwd();
-      isDev = config.command === 'serve';
     },
     transform(code, id) {
-      if (!enabled || !isDev) return;
+      if (!enabled) return;
       const [cleanId] = id.split('?');
       if (cleanId.includes('node_modules')) return;
       if (!cleanId.endsWith('.vue')) return;
@@ -80,4 +78,3 @@ export function annotyVue(options: VuePluginOptions = {}): Plugin {
     },
   };
 }
-

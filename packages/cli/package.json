@@ -2,9 +2,18 @@
   "name": "annoty",
   "version": "1.0.11",
   "description": "Annoty CLI tool for authentication and project initialization",
-
   "type": "module",
   "license": "MIT",
+  "keywords": [
+    "annotation",
+    "prompt-engineering",
+    "prompt-generation",
+    "cursor",
+    "claude",
+    "chatgpt",
+    "developer-tools",
+    "cli"
+  ],
   "files": [
     "dist"
   ],

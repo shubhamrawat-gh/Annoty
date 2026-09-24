@@ -43,23 +43,10 @@ export async function loginCommand(options?: { dashboard?: string }) {
 
     const result = await serverInstance.authPromise;
 
-    // Derive backend API URL from dashboard URL or environment variable
-    let apiUrl = process.env.ANNOTY_API_URL || '';
-    if (!apiUrl) {
-      if (dashboardUrl.includes('localhost:3000') || dashboardUrl.includes('localhost:5173')) {
-        apiUrl = 'http://localhost:5000';
-      } else if (dashboardUrl.includes('annoty-dash.web.app')) {
-        apiUrl = 'https://annoty-api.web.app';
-      } else {
-        apiUrl = dashboardUrl;
-      }
-    }
-
     // Save credentials
     const credentials = {
       token: result.token,
       email: result.email,
-      apiUrl,
       savedAt: new Date().toISOString(),
     };
     writeCredentials(credentials);
@@ -71,4 +58,3 @@ export async function loginCommand(options?: { dashboard?: string }) {
     process.exit(1);
   }
 }
-

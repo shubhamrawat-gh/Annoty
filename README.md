@@ -1,172 +1,195 @@
-# Annoty
+# Annoty ✏️
 
-Annoty is an interactive developer overlay and CLI utility designed to bridge the gap between visual web interfaces and LLM-assisted code editors (such as Claude Code, Cursor, and the Antigravity CLI). 
+**Annoty** is a 100% on-device, zero-cost, zero-backend, zero-AI visual inspector and context capture tool for developers.
 
-By allowing developers to inspect and annotate DOM elements directly in the browser during local development, Annoty compiles visual feedback into structured, contextual Markdown prompts that map directly to the corresponding source code files and line numbers.
+Click any element on your locally-running website to inspect computed styles, detect deterministic UI issues, attach structured change instructions, track with numbered visual pins, compare before/after style diffs, and export consolidated prompts formatted for any AI assistant (Claude Code, Cursor, Codex, ChatGPT) or team review.
 
-<p align="center">
-  <img src="./assets/annoty_ss_1.png" alt="Annoty Interface Overview" width="100%">
-</p>
-
-<p align="center">
-  <img src="./assets/annoty_ss_2.png" alt="Annoty Sidebar and Markdown Prompt Generation" width="100%">
-</p>
-
-
----
-
-## Architectural Features
-
-
-* **Visual DOM Inspection:** Enables element-level click detection and inline annotation overrides without disrupting application-level click handlers or page state.
-* **AST-to-DOM Source Mapping:** Pairs with build plugins to traverse component Abstract Syntax Trees (AST) at compile time, injecting unique location attributes (`data-annoty-source`) onto rendered elements.
-* **Multi-Tier Fallback Resolver:** Resolves source file and line mapping using a prioritized lookup hierarchy (React Fiber, Vue VNodes, Svelte metadata, Astro elements, manual mapping, or semantic CSS selectors).
-* **DOM Sandbox Isolation:** Renders the inspector popup, sidebars, and control toggles inside an isolated Shadow DOM to ensure styles do not bleed into or inherit from the parent application.
-* **Local-First Persistence:** Operates fully offline by default. All annotation states, historical prompt iterations, and group hierarchies reside in browser LocalStorage.
-* **High-Throughput Batch Processing:** Supports simultaneous batch edits. Developers can queue and compile dozens of separate annotations (handling batches of 10+ elements at a time) into a single consolidated instructions prompt.
-* **Cloud Sync Interface:** Supports session token configuration to seamlessly proxy read/write operations through a secure server-side API.
-
----
-
-## Installation & Setup
-
-Annoty requires Node.js v18.0.0+ (which includes native `fetch` support). You can choose to install the CLI globally on your system or execute commands on-demand.
-
-> [!TIP]
-> **Running the commands:**
-> - **Global Installation:** If you installed the package globally via `npm install -g annoty`, use `annoty <command>` (e.g., `annoty init`).
-> - **On-Demand (npx):** If you prefer running it on-the-fly without global installation, use `npx annoty <command>` (e.g., `npx annoty init`).
-
-### Global Installation (Recommended)
-Install the package globally to register the shorthand `annoty` binary on your path:
-
-```bash
-npm install -g annoty
 ```
+┌────────────────────────────────────────────────────────┐
+│                        Annoty                          │
+│                                                        │
+│  Browser DOM                                           │
+│       ↓                                                │
+│  Element Inspector (Box, Typography, Layout, CSS)      │
+│       ↓                                                │
+│  DOM Breadcrumbs (Click to retarget parent)            │
+│       ↓                                                │
+│  Visual Pins (① ② ③ anchored to elements)              │
+│       ↓                                                │
+│  Deterministic UI Diagnostics (Overflow, Contrast)     │
+│       ↓                                                │
+│  Style Diff Engine (Snapshot A vs B with deltas)       │
+│       ↓                                                │
+│  Local Context Compiler                                │
+│       ↓                                                │
+│  Clipboard / JSON / Markdown / Plain Text / File       │
+└────────────────────────────────────────────────────────┘
 
-### On-Demand Runner
-Execute commands directly without permanent installation:
-
-```bash
-npx annoty <command>
+        NO SERVER  •  NO DATABASE  •  NO API  •  NO AI  •  NO COST
 ```
 
 ---
 
-## Integration Workflow
+## Key Features
 
-### 1. Project Initialization
+### 1. Advanced Element Inspector
+Click any element to inspect its exact metrics:
+- **Element Tag & Selector:** CSS path and clean DOM tag.
+- **Component & Source:** React fiber, Vue VNode, Svelte meta, or Astro source mapping down to exact file and line (`src/components/HeroCTA.tsx:42`).
+- **Layout & Coordinates:** Exact pixel dimensions and viewport coordinates (`160 × 44px`, `x: 428, y: 312`).
+- **Computed Styles Snapshot:** Box model (margin, padding, border), Typography (font, size, weight, line-height), Layout (display, position, flex/grid, gap), Appearance (color, background, radius, shadow, opacity), Behavior (overflow, cursor, pointer-events, z-index).
+- **Viewport Presets:** Live dimensions with responsive presets (Mobile 375px, Tablet 768px, Desktop 1440px).
 
-Execute the initialization command from the root of your application directory:
+### 2. DOM Hierarchy Breadcrumbs
+Select small icons or inner spans without frustration:
+- Interactive breadcrumb bar displays the ancestor chain up to `<body>`:
+  `main > section.hero > div.hero-content > button.hero-cta`
+- Click any parent in the breadcrumb chain to instantly retarget the selection.
 
-```bash
-# Using global installation:
-annoty init
+### 3. Visual Pins System
+- Numbered floating pins (`①`, `②`, `③`) automatically anchored to annotated elements.
+- Resilient to scrolling, resizing, and client-side page layout reflows via `ResizeObserver` and `MutationObserver`.
+- Hover a pin to highlight the target element; click to open the annotation editor.
+- Press `P` or use the command palette to toggle pin visibility.
 
-# Using on-demand runner:
-npx annoty init
+### 4. Deterministic UI Diagnostics (No AI Needed)
+Runs instantaneous, deterministic browser computations on inspected elements:
+- **Horizontal Overflow Detection:** Flags elements whose `scrollWidth` exceeds their `clientWidth`.
+- **WCAG Contrast Ratios:** Computes luminance contrast between text and background color, warning when below 4.5:1.
+- **Offscreen Elements:** Detects elements extending outside the visible viewport boundaries.
+- **Un-wrapped Flex Overflow:** Warns when child flex items exceed available parent container width.
+
+### 5. Local Style Diff Engine
+Measure real style changes between edits:
+- **Snapshot Baseline (Snapshot A):** Take a snapshot of an element's computed styles before making code edits.
+- **Compare Current (Snapshot B):** Re-inspect the element to compute a BEFORE → AFTER delta:
+  - `Height: 40px → 48px (+8px)`
+  - `Width: 160px → 172px (+12px)`
+  - `Padding: 8px 16px → 12px 20px`
+  - `Background: #000000 → #3ecf8e`
+- Interactive comparison table modal and structured Markdown export.
+
+### 6. Zero-Dependency Screenshot Capture
+- Capture element bounding boxes, element + parent context, or viewport to PNG data URLs using browser-native SVG `<foreignObject>` and canvas rasterization.
+- Persisted locally with annotations and downloadable directly with one click.
+
+### 7. Rich Context Compiler & Multi-Format Exporter
+Compile individual or grouped annotations into structured outputs:
+- **Markdown:** Formatted with file locations, components, computed styles, diagnostics, and batch guidance templates.
+- **JSON:** Complete, schema-validated JSON payload for tooling integration.
+- **Plain Text:** Lightweight bullet list for quick sharing.
+- **One-Click Actions:** Copy to clipboard or direct client-side file downloads (`.md`, `.json`, `.txt`).
+
+### 8. Command Palette & Keyboard Shortcuts
+Press `Ctrl + K` (or `Cmd + K`) anywhere to open the searchable command palette:
+| Key | Action |
+| --- | --- |
+| `Ctrl + K` / `Cmd + K` | Open Command Palette |
+| `A` or `I` | Toggle Element Inspection Mode |
+| `P` | Toggle Visual Pins |
+| `Alt + S` | Toggle Sidebar |
+| `C` | Copy Context Prompt (Markdown) to Clipboard |
+| `S` | Capture Element / Screen Screenshot |
+| `Esc` | Close Dialogs / Cancel Selection |
+
+### 9. Local Project Configuration (`annoty.config.json`)
+Configure project settings locally with zero cloud dependencies:
+```json
+{
+  "framework": "react",
+  "sourceRoot": "src",
+  "devPort": 5173,
+  "captureScreenshots": true,
+  "includeComputedStyles": true,
+  "responsivePresets": [
+    { "name": "Mobile", "width": 375, "height": 667 },
+    { "name": "Tablet", "width": 768, "height": 1024 },
+    { "name": "Desktop", "width": 1440, "height": 900 }
+  ]
+}
 ```
 
+### 10. Local-First Storage Architecture
+- **IndexedDB:** Persistent storage for annotations, groups, prompt history, screenshots, and style snapshots.
+- **LocalStorage:** User preferences, sidebar open state, and configuration overrides.
+- **Zero Cloud:** No accounts, no external database, no telemetry.
 
+---
 
-The initialization process detects your project's HTML entry point, copies the compiled client-side library (`overlay.js`) to your public assets directory, and injects the corresponding script tag:
+## Quick Start
+
+### 1. In Any HTML / Vite / React / Next.js Project
+
+Add the single-file overlay script to your development template:
 
 ```html
-<script src="/overlay.js" data-annoty-mode="dev"></script>
+<script src="/annoty/overlay.js" data-annoty-mode="dev"></script>
 ```
 
-### 2. Vite AST Plugin Integration (Optional)
-
-To enable compiler-level precision for file and line number mapping, install the build plugin package and configure it in your Vite development pipeline:
-
-```typescript
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { annotyReact } from '@annoty/build-plugins';
-
-export default defineConfig({
-  plugins: [
-    react(),
-    annotyReact()
-  ]
-});
-```
-
-*Note: The plugin walks the JSX AST only during local development (Vite `serve` mode) and will bypass file transformations during production builds.*
-
----
-
-## Production Security & Cleanup
-
-To guarantee that no development assets or source-file attributes leak into production environments, Annoty implements two security layers:
-
-### Sandbox Guardrail
-The browser overlay script halts execution and disables itself unless served from a loopback address (`localhost`, `127.0.0.1`) or explicitly initialized with the dev-mode attribute.
-
-### Workspace Cleanup
-Before compiling production bundles or running git checks, clean the workspace to remove the injected scripts and local assets:
+### 2. Using the CLI
 
 ```bash
-# Using global installation:
-annoty clean
+# Initialize and copy overlay script to your project
+npx annoty init
 
-# Using on-demand runner:
+# Check environment & setup
+npx annoty doctor
+
+# Clean up before git commits or production builds
 npx annoty clean
 ```
 
+---
 
-This strips all injected HTML tags and deletes the copy of `overlay.js` from the public directory.
+## Security & Safety Guardrails
+
+To prevent Annoty from being accidentally shipped to production, the overlay script contains a strict safety guardrail:
+- It **only activates** when served from `localhost`, `127.0.0.1`, or when the `<script>` tag has `data-annoty-mode="dev"` explicitly set.
+- All styles and UI controls are encapsulated within a private **Shadow DOM** so Annoty never leaks CSS into your application or conflicts with host styles.
 
 ---
 
-## Prompt Structure Reference
+## Monorepo Layout
 
-Annoty compiles annotations into a structured prompt schema designed to be parsed and executed by LLM agents:
-
-```markdown
-## UI Change Requests (2 elements)
-
-### File: src/components/Hero.tsx
-
-**1. Line 14** — `<button class="cta-primary">Get Started</button>`
-Increase horizontal padding to 24px and add a hover scale transition.
-
-### File: src/components/Pricing.tsx
-
-**2. Line 32** — `<div class="price-tag">$29/mo</div>`
-Set font weight to 600 and change color to slate-800 (#1e293b).
-
----
-### Guidance for this batch
-- **spacing**: Apply padding/margins using consistent Tailwind configuration values.
-- **color**: Use hex codes matching our color palette tokens.
-
-Apply each change at its specified file/line. Search the codebase for the element using its text content and selector context if line numbers are approximate. Do not modify unrelated code.
+```
+annoty/
+├── packages/
+│   ├── overlay/               # Core 100% on-device overlay
+│   │   ├── src/
+│   │   │   ├── index.ts       # Coordinator entry point & shortcut bindings
+│   │   │   ├── styleInspector.ts # Box model, typography, diagnostics
+│   │   │   ├── styleDiffEngine.ts# Before -> After delta calculator
+│   │   │   ├── screenshotCapture.ts # Native SVG/canvas screenshot generator
+│   │   │   ├── projectConfig.ts  # annoty.config.json loader
+│   │   │   ├── indexedDbStore.ts # Local IndexedDB storage engine
+│   │   │   ├── promptCompiler.ts # Markdown, JSON, and Text compiler
+│   │   │   └── ui/            # Shadow DOM Popup, Sidebar, Pins, Palette
+│   │   └── tests/             # Unit test suite
+│   └── cli/                   # Workspace CLI tool
+├── demo-site/                 # Sandboxed React+Vite app for dogfooding
+└── README.md
 ```
 
 ---
 
-## Technical Specifications
+## Local Development & Testing
 
-### CLI Reference
+```bash
+# 1. Install dependencies
+npm install
 
-| Command | Option | Description |
-|---|---|---|
-| `login` | `--dashboard <url>` | Authenticate local terminal via loopback server |
-| `logout` | None | Clear local credentials and sign out of session |
-| `init` | None | Scaffold project and inject target script tag |
-| `status` | None | Inspect injection status, local assets, and active mode |
-| `doctor` | None | Run Node environment and port diagnostics |
-| `clean` | None | Strip script tags and delete public assets |
+# 2. Run unit tests
+npm test --workspace=packages/overlay
 
-### File Portability (Local-First Backup)
-Developers using the offline local-first configuration can export their annotations and prompt history as a JSON file via the sidebar interface, making it easy to migrate sessions across different browsers.
+# 3. Build the overlay bundle
+npm run build:overlay
+
+# 4. Start the demo application
+npm run dev:demo
+```
 
 ---
 
 ## License
 
-This project is open-source software licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
-
-<!-- Documentation verified: 2026-09-16 -->
-
+MIT © Shubham Rawat

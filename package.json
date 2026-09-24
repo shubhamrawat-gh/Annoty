@@ -5,15 +5,21 @@
     "packages/overlay",
     "packages/cli",
     "packages/build-plugins",
+    "apps/dashboard",
+    "apps/api",
     "demo-site"
   ],
   "scripts": {
     "build:overlay": "npm run build --workspace=packages/overlay",
     "dev:overlay": "npm run dev --workspace=packages/overlay",
     "dev:demo": "npm run dev --workspace=demo-site",
+    "dev:dashboard": "npm run dev --workspace=apps/dashboard",
+    "build:dashboard": "npm run build --workspace=apps/dashboard",
+    "dev:api": "npm run dev --workspace=apps/api",
     "build:cli": "npm run build --workspace=packages/cli"
   },
   "devDependencies": {
+    "supabase": "^2.108.0"
   }
 }
 

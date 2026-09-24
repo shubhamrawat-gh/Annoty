@@ -42,32 +42,5 @@ export async function doctorCommand() {
     console.log(`  ${pc.yellow('⚠')} OAuth Loopback port: ${pc.yellow('Port 9876 is occupied. CLI will automatically sequence.')}`);
   }
 
-  // 4. Check if @annoty/overlay is present in dependencies or node_modules
-  const cwd = process.cwd();
-  let resolvesCorrectly = false;
-  try {
-    const fs = await import('fs');
-    const path = await import('path');
-    const pkgPath = path.join(cwd, 'package.json');
-    if (fs.existsSync(pkgPath)) {
-      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-      const hasDep = (pkg.dependencies && pkg.dependencies['@annoty/overlay']) ||
-                     (pkg.devDependencies && pkg.devDependencies['@annoty/overlay']);
-      if (hasDep) resolvesCorrectly = true;
-    }
-    if (fs.existsSync(path.join(cwd, 'node_modules', '@annoty', 'overlay'))) {
-      resolvesCorrectly = true;
-    }
-  } catch (e) {
-    // Ignore
-  }
-
-  if (resolvesCorrectly) {
-    console.log(`  ${pc.green('✓')} Overlay resolution: @annoty/overlay resolves correctly in current directory`);
-  } else {
-    console.log(`  ${pc.yellow('⚠')} Overlay resolution: @annoty/overlay is not installed or linked in this project directory`);
-  }
-
   console.log(pc.dim('\nDiagnostics complete. All checks finished.\n'));
 }
-

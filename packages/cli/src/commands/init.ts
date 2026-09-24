@@ -10,13 +10,11 @@ const __dirname = path.dirname(__filename);
 
 export async function initCommand() {
   const credentials = readCredentials();
-  const isCloudMode = !!(credentials && credentials.token);
-
-  if (!isCloudMode) {
-    console.log(pc.yellow('\nℹ Note: No active credentials found.'));
-    console.log(`Running in ${pc.bold('Local-Only (Offline) Mode')}. Annotations will be saved to browser LocalStorage.\n`);
-  } else {
-    console.log(pc.green(`\n✓ Active credentials found. Running in ${pc.bold('Cloud-Sync Mode')} for ${pc.cyan(credentials!.email)}.\n`));
+  let hasCredentials = true;
+  if (!credentials || !credentials.token) {
+    hasCredentials = false;
+    console.log(pc.yellow('\nℹ No active credentials found. Proceeding in Local-Only Mode.'));
+    console.log(pc.dim('Your annotations will be saved locally in the browser\'s LocalStorage.'));
   }
 
   const cwd = process.cwd();
@@ -100,74 +98,30 @@ export async function initCommand() {
 
   const overlayUrl = process.env.ANNOTY_OVERLAY_URL || finalOverlayUrl;
 
-  // Build the target script tag
-  let scriptTag = '';
-  if (isCloudMode) {
-    scriptTag = `<script src="${overlayUrl}" data-annoty-mode="dev" data-annoty-token="${credentials!.token}"></script>`;
-  } else {
-    scriptTag = `<script src="${overlayUrl}" data-annoty-mode="dev"></script>`;
+  // Check if already injected
+  if (content.includes('cdn.annoty.com/overlay.js') || content.includes(overlayUrl) || content.includes('data-annoty-token')) {
+    console.log(pc.yellow(`\nℹ Annoty script tag is already present in ${pc.cyan(path.relative(cwd, targetPath))}.`));
+    return;
   }
 
-  // Check if already injected using regex (matches any script targeting overlay.js)
-  const annotyScriptRegex = /<script\s+[^>]*src=["'][^"']*overlay\.js["'][^>]*><\/script>/gi;
-  const hasExistingTag = annotyScriptRegex.test(content);
+  const scriptTag = hasCredentials && credentials
+    ? `<script src="${overlayUrl}" data-annoty-mode="dev" data-annoty-token="${credentials.token}"></script>`
+    : `<script src="${overlayUrl}" data-annoty-mode="dev"></script>`;
 
-  let updatedContent = '';
+  console.log(pc.cyan('\nThe following script tag will be injected:'));
+  console.log(pc.bold(pc.white(scriptTag)));
+  console.log();
 
-  if (hasExistingTag) {
-    // Reset regex index for safety
-    annotyScriptRegex.lastIndex = 0;
-    const existingTag = content.match(annotyScriptRegex)![0];
-    
-    if (existingTag === scriptTag) {
-      console.log(pc.yellow(`\nℹ Annoty script tag is already present and up-to-date in ${pc.cyan(path.relative(cwd, targetPath))}.`));
-      return;
-    }
+  const confirmInject = await prompts({
+    type: 'confirm',
+    name: 'inject',
+    message: `Inject this script tag into ${pc.cyan(path.relative(cwd, targetPath))}?`,
+    initial: true,
+  });
 
-    console.log(pc.cyan('\nAn Annoty script tag was detected but with different options. Updating to:'));
-    console.log(pc.bold(pc.white(scriptTag)));
-    console.log();
-
-    const confirmUpdate = await prompts({
-      type: 'confirm',
-      name: 'update',
-      message: `Update the script tag in ${pc.cyan(path.relative(cwd, targetPath))}?`,
-      initial: true,
-    });
-
-    if (!confirmUpdate.update) {
-      console.log(pc.yellow('Update cancelled.'));
-      return;
-    }
-
-    // Reset index again to perform replace
-    annotyScriptRegex.lastIndex = 0;
-    updatedContent = content.replace(annotyScriptRegex, scriptTag);
-  } else {
-    console.log(pc.cyan('\nThe following script tag will be injected:'));
-    console.log(pc.bold(pc.white(scriptTag)));
-    console.log();
-
-    const confirmInject = await prompts({
-      type: 'confirm',
-      name: 'inject',
-      message: `Inject this script tag into ${pc.cyan(path.relative(cwd, targetPath))}?`,
-      initial: true,
-    });
-
-    if (!confirmInject.inject) {
-      console.log(pc.yellow('Injection cancelled.'));
-      return;
-    }
-
-    // Inject
-    if (content.includes('</body>')) {
-      updatedContent = content.replace('</body>', `  ${scriptTag}\n</body>`);
-    } else if (content.includes('</head>')) {
-      updatedContent = content.replace('</head>', `  ${scriptTag}\n</head>`);
-    } else {
-      updatedContent = content + `\n${scriptTag}`;
-    }
+  if (!confirmInject.inject) {
+    console.log(pc.yellow('Injection cancelled.'));
+    return;
   }
 
   // Copy overlay.js locally if available
@@ -180,9 +134,19 @@ export async function initCommand() {
     }
   }
 
+  // Inject
+  let updatedContent = '';
+  if (content.includes('</body>')) {
+    updatedContent = content.replace('</body>', `  ${scriptTag}\n</body>`);
+  } else if (content.includes('</head>')) {
+    updatedContent = content.replace('</head>', `  ${scriptTag}\n</head>`);
+  } else {
+    updatedContent = content + `\n${scriptTag}`;
+  }
+
   try {
     fs.writeFileSync(targetPath, updatedContent, 'utf8');
-    console.log(pc.green(`\n✓ Successfully injected/updated Annoty script tag in ${pc.cyan(path.relative(cwd, targetPath))}`));
+    console.log(pc.green(`\n✓ Successfully injected Annoty script tag into ${pc.cyan(path.relative(cwd, targetPath))}`));
     console.log(pc.blue('👉 Please restart your development server to see the changes.\n'));
   } catch (err: any) {
     console.log(pc.red(`\n✗ Error: Failed to write to file: ${err.message}`));

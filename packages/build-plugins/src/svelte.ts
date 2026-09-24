@@ -70,17 +70,15 @@ export interface SveltePluginOptions {
 export function annotySvelte(options: SveltePluginOptions = {}): Plugin {
   const enabled = options.enabled !== false;
   let projectRoot = process.cwd();
-  let isDev = false;
 
   return {
     name: 'vite-plugin-annoty-svelte',
     enforce: 'pre',
     configResolved(config) {
       projectRoot = config.root || process.cwd();
-      isDev = config.command === 'serve';
     },
     transform(code, id) {
-      if (!enabled || !isDev) return;
+      if (!enabled) return;
       const [cleanId] = id.split('?');
       if (cleanId.includes('node_modules')) return;
       if (!cleanId.endsWith('.svelte')) return;
@@ -95,7 +93,6 @@ export function annotySvelte(options: SveltePluginOptions = {}): Plugin {
     },
   };
 }
-
 
 export function annotySveltePreprocessor(options: SveltePluginOptions = {}) {
   const enabled = options.enabled !== false;

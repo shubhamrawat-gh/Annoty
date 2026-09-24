@@ -85,23 +85,24 @@ export interface AnnotyPluginOptions {
 export function annotyReact(options: AnnotyPluginOptions = {}): Plugin {
   const enabled = options.enabled !== false;
   let projectRoot = process.cwd();
-  let isDev = false;
 
   return {
     name: 'vite-plugin-annoty-react',
     enforce: 'pre',
     configResolved(config) {
       projectRoot = config.root || process.cwd();
-      isDev = config.command === 'serve';
     },
     transform(code, id) {
-      if (!enabled || !isDev) return;
+      console.log(`[Annoty React Plugin] Hook invoked for id: ${id}`);
+      if (!enabled) return;
       const [cleanId] = id.split('?');
       if (cleanId.includes('node_modules')) return;
       if (!/\.[jt]sx?$/.test(cleanId)) return;
 
+      console.log(`[Annoty React Plugin] Transforming file: ${cleanId}`);
       const result = transformReact(code, cleanId, projectRoot);
       if (result) {
+        console.log(`[Annoty React Plugin] Successfully transformed: ${cleanId}`);
         return {
           code: result.code,
           map: result.map,
@@ -110,4 +111,3 @@ export function annotyReact(options: AnnotyPluginOptions = {}): Plugin {
     },
   };
 }
-

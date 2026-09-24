@@ -1,178 +1,72 @@
 # Annoty CLI
 
-The Annoty CLI (`annoty`) is a developer utility designed to manage visual annotations and codebase instrumentation. It automates local script injection, manages offline/cloud operation modes, and runs diagnostics on your local development workspace.
+The command line companion for **Annoty**, a developer tool that lets you select elements on your local website, write styling/functional instructions, and compile them into structured prompts for your AI coding assistant (like Claude Code, Cursor, ChatGPT, etc.).
+
+This CLI handles project initialization (injecting the overlay), checking status, running diagnostic checks, and cleaning up injection tags before commits or production builds.
 
 ---
 
-## Technical Architecture
+## Installation
 
-### Authentication Handshake (OAuth Loopback)
+You can run the CLI directly using `npx`, or install it globally on your machine:
 
-The CLI uses the Loopback Interface pattern (RFC 8252) to establish secure local sessions:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Developer
-    participant CLI as Annoty CLI (Local)
-    participant Server as Loopback Server (Port 9876+)
-    participant Browser as Default Browser
-    participant API as Backend Proxy API
-    participant DB as Postgres Database
-
-    Developer->>CLI: annoty login
-    CLI->>Server: Start local HTTP Server (Port 9876)
-    CLI->>Browser: Open login URL
-    Browser->>API: Load OAuth Page
-    Developer->>API: Authenticate Session
-    API-->>Browser: Return JWT Session Token
-    Browser->>Server: HTTP GET /callback?token=JWT&email=USER_EMAIL
-    Server-->>Browser: Response: "Authentication Successful" HTML
-    Server->>CLI: Write token to ~/.annoty/credentials
-    Server->>Server: Shutdown socket & release port
-    CLI-->>Developer: Print "Logged in as <email>"
-```
-
-* **Dynamic Port Binding:** The local callback server listens on port `9876`. If the port is in use, it sequentially scans and binds up to port `9885`.
-* **Lifecycle Constraints:** The server shuts down automatically immediately after receiving the credentials or upon reaching a 2-minute connection timeout.
-
-### Credential Storage & Security
-
-Session tokens are stored in the user's home directory:
-* **Path:** `~/.annoty/credentials`
-* **Security Model:** On POSIX-compliant systems, files are initialized with `0600` permissions (Owner Read/Write only). On Windows systems, files are saved in the user's secure profile directory (`%USERPROFILE%`).
-
----
-
-## Multi-Tier Source Mapping
-
-When you select an element in the browser, Annoty resolves its location in the source code using a prioritized lookup hierarchy:
-
-1. **React Fiber (Tier 1):** Resolves JSX node locations (`_debugSource` properties containing file, line, and column numbers) from the DOM instance in development mode.
-2. **Framework Native (Tier 2):** Parses Vue VNodes, Svelte metadata (`__svelte_meta`), or compiler-injected Astro attributes (`data-astro-source-file`).
-3. **Universal Data Attribute (Tier 3):** Inspects the target DOM tree for a `data-annoty-source` attribute (e.g. `data-annoty-source="src/components/Sidebar.tsx:42"`).
-4. **Normalized CSS Selector (Tier 4):** Compiles a resilient CSS selector path combined with parent landmark contexts (such as `<main>` or `<nav>`) as a fallback.
-
----
-
-## Command Reference
-
-### `login`
-
-Authenticates the local CLI session.
-
+### Running on the fly:
 ```bash
-annoty login [options]
+npx annoty <command>
 ```
 
-* **Options:**
-  * `-d, --dashboard <url>`: Override the default API target URL (useful for custom endpoints or staging environments).
-
----
-
-### `logout`
-
-Clears local configurations and deletes the active session token.
-
+### Global Installation:
 ```bash
-annoty logout
+npm install -g annoty
 ```
 
 ---
 
-### `init`
+## Workflow Commands
 
-Instruments the current project directory for overlay usage.
+> [!NOTE]
+> If you are using the on-demand `npx` runner instead of a global installation, replace the `annoty` command prefix with `npx annoty` for all commands below (e.g., `npx annoty init` instead of `annoty init`).
 
-```bash
-annoty init
-```
+### Authentication
+* **`annoty login`**
+  Starts the authentication handshake. It opens a browser tab pointing to the Annoty Cloud dashboard. Once authenticated, the browser redirects back to a temporary local loopback server (`http://localhost:9876`) to securely save your sync credentials.
+* **`annoty logout`**
+  Safely signs out of your active session and completely clears local credential files.
 
-* **Idempotence:** Scans your HTML entry point and replaces existing Annoty tags inline instead of appending duplicate elements.
-* **Offline Fallback:** If you are logged out, `init` configures the project in **Local-Only Mode**, copying `overlay.js` and injecting the script tag without sync tokens.
+### Setup & Project Integration
+* **`annoty init`**
+  Checks your project for standard asset directories (e.g. `public/`), copies the compiled `overlay.js` script there, and automatically injects the script tag into your `index.html`.
 
----
+### Diagnostics & Status
+* **`annoty status`**
+  Scans the current working directory to check if Annoty is injected, verifies the state of `overlay.js` in public assets, and displays the currently logged-in user email.
+* **`annoty doctor`**
+  Runs system checks including Node.js version compatibility (requires >= v18), loopback port checks, and local configuration validations.
+* **`annoty groups`**
+  Queries and lists all your synced cloud annotation groups from the database.
 
-### `status`
-
-Inspects the current workspace and reports active configuration metrics.
-
-```bash
-annoty status
-```
-
-* **Output Metrics:**
-  * Active Authentication Status
-  * Active Sync Mode (Local-Only vs. Cloud Sync)
-  * HTML Entry Point Injection State
-  * Local Asset Compilation Verification
-
----
-
-### `doctor`
-
-Runs environment and dependency diagnostics.
-
-```bash
-annoty doctor
-```
-
-* **Diagnostics Performed:**
-  * Verifies Node.js execution environment meets the `>= v18` requirement.
-  * Validates the loopback loop port availability (`9876`).
-  * Confirms whether `@annoty/overlay` resolves correctly within the workspace dependencies.
+### Cleanup & Updates
+* **`annoty clean`**
+  *Crucial codebase hygiene utility.* Scans your workspace, removes all injected `<script>` tags from your HTML entry points, and deletes the local `public/overlay.js` asset. Run this before staging code in Git or building for production.
+* **`annoty uninstall`**
+  Permanently deletes all global Annoty configurations, tokens, and temporary files from your computer.
+* **`annoty update`**
+  Checks npm for the latest version of the CLI and runs a global update.
 
 ---
 
-### `clean`
+## How It Works Under the Hood
 
-Removes all development code attributes and assets. Run this command before building production assets or completing code reviews.
+### Local Credential Storage
+Credentials retrieved during login are written locally to your home directory:
+* **Path**: `~/.annoty/credentials`
+* **Security**: On POSIX/Unix systems, the file is saved with strict `0600` permissions (Owner Read/Write only) to prevent unauthorized token extraction.
 
-```bash
-annoty clean
-```
-
-* **Actions:**
-  * Deletes the local compiled `public/overlay.js` script asset.
-  * Strips all Annoty script tags from the project's HTML entry point.
+### Port Selection Range
+For the login callback server, the CLI attempts to listen on port `9876`. If that port is occupied, it automatically increments and tests ports up to `9885` sequentially.
 
 ---
 
-### `groups`
+## License
 
-Lists all synchronized annotation groups.
-
-```bash
-annoty groups
-```
-
-*Note: In Local-Only mode, this command is bypassed since all active group data is stored in the browser's LocalStorage.*
-
----
-
-### `uninstall`
-
-Wipes the local system configuration.
-
-```bash
-annoty uninstall
-```
-
-* **Actions:**
-  * Deletes the global configuration folder `~/.annoty/`.
-  * Logs instructions for clean package removal from the global npm registry.
-
----
-
-## Troubleshooting
-
-### Dynamic caching conflicts in `npx`
-* **Symptom:** `npx` runs an outdated version of the package.
-* **Resolution:** Clear execution caches by targeting the latest package explicitly:
-  ```bash
-  npx annoty@latest <command>
-  ```
-
-### Loopback port conflicts
-* **Symptom:** CLI fails with `Could not find an available port in the range 9876-9885`.
-* **Resolution:** Close running development servers blocking ports `9876` through `9885` and re-run `login`.
+MIT (c) [Annoty](https://annoty.dev)
