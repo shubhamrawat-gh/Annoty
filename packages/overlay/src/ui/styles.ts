@@ -1,23 +1,28 @@
 export const CSS_STYLES = `
 :host {
-  --bg-main: #121214;
-  --bg-surface: #1a1a1e;
-  --bg-input: #232329;
-  --border-subtle: #2d2d34;
+  --bg-main: #0B0C0E;
+  --bg-surface: #13151A;
+  --bg-surface-glass: rgba(19, 21, 26, 0.88);
+  --bg-input: #1C1F26;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-subtle-bright: rgba(255, 255, 255, 0.14);
   --border-focus: #3ecf8e;
   
   --text-primary: #f4f4f5;
-  --text-muted: #a1a1aa;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
   --text-error: #f87171;
   
   --accent: #3ecf8e;
   --accent-hover: #2ebd7d;
-  --accent-light: rgba(62, 207, 142, 0.15);
+  --accent-light: rgba(62, 207, 142, 0.12);
   
-  --shadow-popup: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-  --shadow-sidebar: -10px 0 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-popup: 0 16px 40px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-sidebar: -16px 0 48px rgba(0, 0, 0, 0.75), -1px 0 0 0 rgba(255, 255, 255, 0.08);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   
-  --font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   
   font-family: var(--font-family);
   font-size: 14px;
@@ -35,16 +40,18 @@ export const CSS_STYLES = `
   bottom: 24px;
   right: 24px;
   height: 48px;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  background: rgba(14, 16, 21, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
   cursor: grab;
   display: flex;
   align-items: center;
   padding: 4px;
   gap: 4px;
-  z-index: 999999;
+  z-index: 2147483646;
   transition: border-color 0.2s, box-shadow 0.2s;
   user-select: none;
   box-sizing: border-box;
@@ -56,6 +63,7 @@ export const CSS_STYLES = `
 
 .annoty-toggle:hover {
   border-color: var(--accent);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 16px rgba(62, 207, 142, 0.25);
 }
 
 .annoty-control-btn {
@@ -75,12 +83,13 @@ export const CSS_STYLES = `
 }
 
 .annoty-control-btn:hover {
-  background-color: var(--bg-input);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .annoty-control-btn.active {
   background-color: var(--accent);
-  color: var(--bg-main);
+  color: #0b0c0e;
+  box-shadow: 0 0 12px rgba(62, 207, 142, 0.4);
 }
 
 .annoty-control-btn svg {
@@ -112,18 +121,237 @@ export const CSS_STYLES = `
 }
 
 /* ==========================================================================
-   Overlay Highlight (drawn on host body, but positioned here)
+   Overlay Highlight & High-Tech Corner Brackets
    ========================================================================== */
 .annoty-highlight {
   position: fixed;
-  border: 2px solid var(--accent);
-  background-color: rgba(62, 207, 142, 0.08);
+  border: 1.5px solid var(--accent);
+  background: rgba(62, 207, 142, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(62, 207, 142, 0.25), 0 0 16px rgba(62, 207, 142, 0.15);
   pointer-events: none;
-  z-index: 999990;
-  transition: all 0.08s ease-out;
-  border-radius: 4px;
+  z-index: 2147483640;
+  transition: all 0.06s ease-out;
+  border-radius: 3px;
   box-sizing: border-box;
 }
+
+/* Corner accent brackets */
+.annoty-corner-tl,
+.annoty-corner-tr,
+.annoty-corner-bl,
+.annoty-corner-br {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: #3ecf8e;
+  border-style: solid;
+  pointer-events: none;
+}
+
+.annoty-corner-tl {
+  top: -2px;
+  left: -2px;
+  border-width: 2px 0 0 2px;
+  border-top-left-radius: 2px;
+}
+
+.annoty-corner-tr {
+  top: -2px;
+  right: -2px;
+  border-width: 2px 2px 0 0;
+  border-top-right-radius: 2px;
+}
+
+.annoty-corner-bl {
+  bottom: -2px;
+  left: -2px;
+  border-width: 0 0 2px 2px;
+  border-bottom-left-radius: 2px;
+}
+
+.annoty-corner-br {
+  bottom: -2px;
+  right: -2px;
+  border-width: 0 2px 2px 0;
+  border-bottom-right-radius: 2px;
+}
+
+/* Floating Inspector Badge / Tooltip */
+.annoty-picker-tooltip {
+  position: fixed;
+  height: 26px;
+  background: rgba(11, 12, 14, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.2);
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+  z-index: 2147483642;
+  white-space: nowrap;
+  animation: annoty-fade-in 0.1s ease-out;
+  box-sizing: border-box;
+}
+
+.annoty-tooltip-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.annoty-tooltip-comp {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+.annoty-tooltip-dim {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.annoty-tooltip-hint {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 2px;
+}
+
+/* ==========================================================================
+   Visual Pins Layer & Floating Indicators
+   ========================================================================== */
+.annoty-pins-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 2147483645;
+}
+
+.annoty-pin {
+  position: fixed;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 0 1.5px rgba(255, 255, 255, 0.2);
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.annoty-pin:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 0 2px #ffffff;
+  z-index: 2147483647;
+}
+
+.annoty-pin-num {
+  position: relative;
+  z-index: 2;
+  line-height: 1;
+}
+
+.annoty-pin-pulse {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  opacity: 0.6;
+  pointer-events: none;
+  animation: annoty-pin-radar 2.5s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes annoty-pin-radar {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  70% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+/* Pin States */
+.annoty-pin-state-pending {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+.annoty-pin-state-pending .annoty-pin-pulse {
+  border: 2px solid #10b981;
+}
+
+.annoty-pin-state-in_progress {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+.annoty-pin-state-in_progress .annoty-pin-pulse {
+  border: 2px solid #3b82f6;
+}
+
+.annoty-pin-state-resolved {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  opacity: 0.75;
+}
+.annoty-pin-state-resolved .annoty-pin-pulse {
+  display: none;
+}
+
+.annoty-pin-state-ignored {
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  opacity: 0.5;
+}
+.annoty-pin-state-ignored .annoty-pin-pulse {
+  display: none;
+}
+
+/* Pin Severities */
+.annoty-pin-sev-critical {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.6), 0 0 0 1.5px rgba(255, 255, 255, 0.3) !important;
+}
+.annoty-pin-sev-critical .annoty-pin-pulse {
+  border: 2px solid #ef4444 !important;
+}
+
+.annoty-pin-sev-high {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5), 0 0 0 1.5px rgba(255, 255, 255, 0.3) !important;
+}
+.annoty-pin-sev-high .annoty-pin-pulse {
+  border: 2px solid #f59e0b !important;
+}
+
 
 /* ==========================================================================
    Popup Dialog (Click annotation input)
@@ -305,16 +533,18 @@ export const CSS_STYLES = `
   position: fixed;
   top: 0;
   right: 0;
-  width: 360px;
+  width: 380px;
   height: 100vh;
-  background-color: var(--bg-main);
+  background-color: var(--bg-surface-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-left: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-sidebar);
-  z-index: 999997;
+  z-index: 2147483644;
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   box-sizing: border-box;
 }
 
@@ -323,21 +553,22 @@ export const CSS_STYLES = `
 }
 
 .annoty-sidebar-header {
-  padding: 16px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--bg-surface);
+  background-color: rgba(11, 12, 14, 0.65);
 }
 
 .annoty-sidebar-title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .annoty-sidebar-title svg {
@@ -346,6 +577,29 @@ export const CSS_STYLES = `
   stroke: var(--accent);
   stroke-width: 2;
   fill: none;
+}
+
+.annoty-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  background: rgba(62, 207, 142, 0.1);
+  border: 1px solid rgba(62, 207, 142, 0.2);
+  padding: 2px 7px;
+  border-radius: 9999px;
+}
+
+.annoty-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
 }
 
 .annoty-sidebar-list {
@@ -366,7 +620,7 @@ export const CSS_STYLES = `
 
 .annoty-sidebar-list::-webkit-scrollbar-thumb,
 .annoty-preview-area::-webkit-scrollbar-thumb {
-  background-color: var(--border-subtle);
+  background-color: var(--border-subtle-bright);
   border-radius: 3px;
 }
 
@@ -375,22 +629,27 @@ export const CSS_STYLES = `
   background-color: transparent;
 }
 
-/* Annotation List Item Row */
+/* Annotation List Item Card */
 .annoty-item {
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  padding: 12px;
+  background: rgba(22, 25, 32, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   position: relative;
-  transition: border-color 0.15s;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-card);
   box-sizing: border-box;
 }
 
 .annoty-item:hover {
-  border-color: var(--text-muted);
+  border-color: rgba(62, 207, 142, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
 }
 
 .annoty-item-header {
@@ -403,7 +662,7 @@ export const CSS_STYLES = `
 .annoty-item-meta {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .annoty-item-title-row {
@@ -413,12 +672,14 @@ export const CSS_STYLES = `
 }
 
 .annoty-item-badge {
-  background-color: var(--accent-light);
+  background: linear-gradient(135deg, rgba(62, 207, 142, 0.2) 0%, rgba(62, 207, 142, 0.05) 100%);
+  border: 1px solid rgba(62, 207, 142, 0.3);
   color: var(--accent);
+  font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
-  width: 20px;
-  height: 20px;
+  font-weight: 700;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -427,13 +688,14 @@ export const CSS_STYLES = `
 }
 
 .annoty-item-tag {
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
+  font-weight: 600;
   color: var(--accent);
-  background-color: var(--bg-main);
-  padding: 2px 6px;
+  background-color: rgba(11, 12, 14, 0.8);
+  padding: 2px 7px;
   border-radius: 4px;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -697,34 +959,38 @@ export const CSS_STYLES = `
    ========================================================================== */
 .annoty-sidebar-tabs {
   display: flex;
-  background-color: var(--bg-main);
+  background: rgba(0, 0, 0, 0.4);
   border-bottom: 1px solid var(--border-subtle);
-  padding: 4px;
+  padding: 6px 16px;
+  gap: 6px;
 }
 
 .annoty-tab-btn {
   flex: 1;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 6px 12px;
   font-family: var(--font-family);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
-  border-radius: 4px;
+  border-radius: 6px;
   text-align: center;
-  transition: background-color 0.2s, color 0.2s;
+  transition: all 0.15s ease;
 }
 
 .annoty-tab-btn:hover {
   color: var(--text-primary);
-  background-color: var(--bg-surface);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .annoty-tab-btn.active {
-  color: var(--text-primary);
-  background-color: var(--bg-input);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .annoty-group-selector {

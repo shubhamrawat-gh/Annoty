@@ -3,77 +3,159 @@ import path from 'path';
 import pc from 'picocolors';
 import prompts from 'prompts';
 
+/**
+ * Recursively scans directory for files matching test function, ignoring node_modules, dist, etc.
+ */
+function findFiles(dir: string, filter: (file: string) => boolean, maxDepth = 4, depth = 0): string[] {
+  if (depth > maxDepth || !fs.existsSync(dir)) return [];
+  const results: string[] = [];
+
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (['node_modules', 'dist', 'build', '.git', '.next', '.nuxt', 'coverage'].includes(entry.name)) {
+          continue;
+        }
+        results.push(...findFiles(fullPath, filter, maxDepth, depth + 1));
+      } else if (entry.isFile() && filter(entry.name)) {
+        results.push(fullPath);
+      }
+    }
+  } catch {
+    // Ignore unreadable dirs
+  }
+
+  return results;
+}
+
 export async function cleanCommand() {
   const cwd = process.cwd();
-  const possiblePaths = [
-    path.join(cwd, 'index.html'),
-    path.join(cwd, 'public', 'index.html'),
-    path.join(cwd, 'src', 'index.html'),
+
+  console.log(pc.cyan('\n🔍 Scanning project for Annoty scripts, imports, and assets...'));
+
+  // 1. Find all HTML files
+  const htmlFiles = findFiles(cwd, (name) => name.endsWith('.html'));
+
+  // 2. Find common entrypoint source files for imports
+  const srcFiles = findFiles(cwd, (name) => /\.(tsx?|jsx?|vue|svelte|astro)$/.test(name));
+
+  // 3. Find physical overlay asset files
+  const potentialAssetPaths = [
+    path.join(cwd, 'overlay.js'),
+    path.join(cwd, 'public', 'overlay.js'),
+    path.join(cwd, 'public', 'annoty', 'overlay.js'),
+    path.join(cwd, 'src', 'overlay.js'),
+    path.join(cwd, 'annoty.config.json'),
   ];
 
-  let detectedPath: string | null = null;
-  for (const p of possiblePaths) {
-    if (fs.existsSync(p)) {
-      detectedPath = p;
-      break;
-    }
+  const affectedHtmlFiles: string[] = [];
+  const affectedSrcFiles: string[] = [];
+  const existingAssets: string[] = potentialAssetPaths.filter((p) => fs.existsSync(p));
+
+  // Regex patterns
+  const htmlScriptRegex = /([ \t]*<!--[^\n]*Annoty[^\n]*-->\r?\n)?([ \t]*<script\b[^>]*(?:annoty|overlay\.js|data-annoty-mode|data-annoty-token)[^>]*>[\s\S]*?<\/script>\r?\n?)/gi;
+  const jsImportRegex = /^[ \t]*import\s+['"](?:annoty|@annoty\/overlay)['"];?\r?\n?/gm;
+  const jsInitRegex = /^[ \t]*import\s+\{[^}]*initAnnoty[^}]*\}\s+from\s+['"]annoty['"];?\r?\n?|^[ \t]*initAnnoty\(\);?\r?\n?/gm;
+
+  // Scan HTML files
+  for (const file of htmlFiles) {
+    try {
+      const content = fs.readFileSync(file, 'utf8');
+      if (htmlScriptRegex.test(content) || content.includes('overlay.js') || content.includes('data-annoty-mode')) {
+        affectedHtmlFiles.push(file);
+      }
+    } catch {}
   }
 
-  if (!detectedPath) {
-    console.log(pc.red('\n✗ Error: No HTML entry point found in the current directory.'));
-    console.log(pc.yellow('Make sure you are at the project root to run this clean command.\n'));
-    process.exit(1);
+  // Scan Source files for imports
+  for (const file of srcFiles) {
+    try {
+      const content = fs.readFileSync(file, 'utf8');
+      if (content.includes('annoty') || content.includes('initAnnoty')) {
+        affectedSrcFiles.push(file);
+      }
+    } catch {}
   }
 
-  let content = fs.readFileSync(detectedPath, 'utf8');
-  const hasScriptTag = content.includes('data-annoty-token') || content.includes('overlay.js');
+  const totalRemnants = affectedHtmlFiles.length + affectedSrcFiles.length + existingAssets.length;
 
-  const publicOverlay = path.join(cwd, 'public', 'overlay.js');
-  const localOverlay = path.join(path.dirname(detectedPath), 'overlay.js');
-  const hasLocalScript = fs.existsSync(publicOverlay) || fs.existsSync(localOverlay);
-
-  if (!hasScriptTag && !hasLocalScript) {
-    console.log(pc.green('\n✓ Project is already clean. No Annoty remnants found.\n'));
+  if (totalRemnants === 0) {
+    console.log(pc.green('✓ Project is completely clean. No Annoty remnants found.\n'));
     return;
   }
 
-  console.log(pc.cyan('\n🧹 Annoty Cleanup Scan:'));
-  if (hasScriptTag) console.log(`  - Script tag detected in ${pc.blue(path.relative(cwd, detectedPath))}`);
-  if (fs.existsSync(publicOverlay)) console.log(`  - Local copy found at ${pc.blue(path.relative(cwd, publicOverlay))}`);
-  if (fs.existsSync(localOverlay)) console.log(`  - Local copy found at ${pc.blue(path.relative(cwd, localOverlay))}`);
+  console.log(pc.yellow(`\nFound ${totalRemnants} Annoty artifact(s) to clean:`));
+  affectedHtmlFiles.forEach((f) => console.log(`  - Script tag in: ${pc.blue(path.relative(cwd, f))}`));
+  affectedSrcFiles.forEach((f) => console.log(`  - Code import in: ${pc.blue(path.relative(cwd, f))}`));
+  existingAssets.forEach((f) => console.log(`  - Asset file: ${pc.blue(path.relative(cwd, f))}`));
   console.log();
 
   const confirmClean = await prompts({
     type: 'confirm',
     name: 'proceed',
-    message: 'Remove all Annoty scripts and tags from this project?',
+    message: 'Remove all Annoty scripts, imports, and assets from this project?',
     initial: true,
   });
 
   if (!confirmClean.proceed) {
-    console.log(pc.yellow('Cleanup cancelled.'));
+    console.log(pc.yellow('Cleanup cancelled.\n'));
     return;
   }
 
-  // Remove script tag using regex
-  const regex = /<script\b[^>]*data-annoty-token="[^"]*"[^>]*><\/script>|<script\b[^>]*src="[^"]*overlay\.js"[^>]*><\/script>/gi;
-  const cleanedContent = content.replace(regex, '');
+  let cleanedCount = 0;
 
-  try {
-    fs.writeFileSync(detectedPath, cleanedContent, 'utf8');
-    console.log(pc.green(`✓ Removed Annoty script tag from ${pc.blue(path.relative(cwd, detectedPath))}`));
-
-    if (fs.existsSync(publicOverlay)) {
-      fs.unlinkSync(publicOverlay);
-      console.log(pc.green(`✓ Deleted ${pc.blue(path.relative(cwd, publicOverlay))}`));
+  // Clean HTML files
+  for (const file of affectedHtmlFiles) {
+    try {
+      const content = fs.readFileSync(file, 'utf8');
+      const updated = content.replace(htmlScriptRegex, '');
+      if (updated !== content) {
+        fs.writeFileSync(file, updated, 'utf8');
+        console.log(pc.green(`✓ Removed Annoty script tag from ${pc.blue(path.relative(cwd, file))}`));
+        cleanedCount++;
+      }
+    } catch (err: any) {
+      console.log(pc.red(`✗ Failed to update ${file}: ${err.message}`));
     }
-    if (fs.existsSync(localOverlay)) {
-      fs.unlinkSync(localOverlay);
-      console.log(pc.green(`✓ Deleted ${pc.blue(path.relative(cwd, localOverlay))}`));
-    }
-    console.log(pc.bold(pc.green('\n✓ Project successfully cleaned! Ready for production release.\n')));
-  } catch (err: any) {
-    console.log(pc.red(`\n✗ Error performing cleanup: ${err.message}\n`));
-    process.exit(1);
   }
+
+  // Clean Source files
+  for (const file of affectedSrcFiles) {
+    try {
+      const content = fs.readFileSync(file, 'utf8');
+      let updated = content.replace(jsImportRegex, '').replace(jsInitRegex, '');
+      if (updated !== content) {
+        fs.writeFileSync(file, updated, 'utf8');
+        console.log(pc.green(`✓ Removed Annoty imports from ${pc.blue(path.relative(cwd, file))}`));
+        cleanedCount++;
+      }
+    } catch (err: any) {
+      console.log(pc.red(`✗ Failed to update ${file}: ${err.message}`));
+    }
+  }
+
+  // Delete physical assets
+  for (const assetPath of existingAssets) {
+    try {
+      if (fs.existsSync(assetPath)) {
+        fs.unlinkSync(assetPath);
+        console.log(pc.green(`✓ Deleted ${pc.blue(path.relative(cwd, assetPath))}`));
+        cleanedCount++;
+      }
+    } catch (err: any) {
+      console.log(pc.red(`✗ Failed to delete ${assetPath}: ${err.message}`));
+    }
+  }
+
+  // Check if public/annoty directory is empty and delete it
+  const publicAnnotyDir = path.join(cwd, 'public', 'annoty');
+  try {
+    if (fs.existsSync(publicAnnotyDir) && fs.readdirSync(publicAnnotyDir).length === 0) {
+      fs.rmdirSync(publicAnnotyDir);
+    }
+  } catch {}
+
+  console.log(pc.bold(pc.green(`\n✓ Successfully removed ${cleanedCount} item(s). Your project is clean and production-ready!\n`)));
 }

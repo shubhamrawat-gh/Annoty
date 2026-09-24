@@ -1,9 +1,21 @@
 {
   "name": "annoty",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "100% on-device visual inspector, style diff engine, and context compiler CLI",
   "type": "module",
   "license": "MIT",
+  "main": "dist/overlay.js",
+  "module": "dist/overlay.js",
+  "exports": {
+    ".": {
+      "import": "./dist/overlay.js",
+      "default": "./dist/overlay.js"
+    },
+    "./overlay": {
+      "import": "./dist/overlay.js",
+      "default": "./dist/overlay.js"
+    }
+  },
   "keywords": [
     "annotation",
     "prompt-engineering",
@@ -21,7 +33,7 @@
     "annoty": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc && node -e \"const fs = require('fs'); const path = require('path'); const src = path.resolve('..', 'overlay', 'dist', 'overlay.js'); const dest = path.resolve('dist', 'overlay.js'); if (fs.existsSync(src)) { fs.copyFileSync(src, dest); console.log('Successfully copied overlay.js to dist'); } else { console.log('Warning: overlay.js not found in overlay/dist'); }\""
+    "build": "tsc && node -e \"import('fs').then(fs => { import('path').then(path => { const src = path.resolve('..', 'overlay', 'dist', 'overlay.js'); const dest = path.resolve('dist', 'overlay.js'); if (fs.existsSync(src)) { fs.copyFileSync(src, dest); console.log('Successfully copied overlay.js to dist'); } }); });\""
   },
   "dependencies": {
     "commander": "^12.0.0",

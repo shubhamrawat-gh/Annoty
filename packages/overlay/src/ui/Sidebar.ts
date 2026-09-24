@@ -77,6 +77,7 @@ export class Sidebar {
         <h2 class="annoty-sidebar-title">
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
           <span>Annoty</span>
+          <span class="annoty-header-badge"><span class="annoty-status-dot"></span>Local</span>
         </h2>
         <button class="annoty-icon-btn annoty-sidebar-close" title="Close Panel">
           <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -569,6 +570,7 @@ export class Sidebar {
       itemEl.querySelector('.annoty-delete-btn')!.addEventListener('click', async () => {
         if (confirm('Delete this annotation?')) {
           await this.store.delete(anno.id);
+          await this.render();
         }
       });
 
@@ -727,10 +729,11 @@ export class Sidebar {
         'Clear all annotations? This will wipe all current annotations and groups, but your generated prompts in History remain safe.'
       )
     ) {
+      await this.store.clear();
       await this.groupStore.clear();
       this.hidePreviewPanel();
       this.groupMode = 'normal';
-      this.render();
+      await this.render();
     }
   }
 

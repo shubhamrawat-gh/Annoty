@@ -34,6 +34,14 @@ try {
 
   fs.writeFileSync(outputPath, finalCode, 'utf8');
   console.log('[Annoty-CLI-Generator] Successfully generated single-file installer at: packages/overlay/dist/install-annoty.mjs');
+
+  // Also copy overlay.js into packages/cli/dist for npm packaging
+  const cliDistDir = path.resolve(__dirname, '../../cli/dist');
+  if (!fs.existsSync(cliDistDir)) {
+    fs.mkdirSync(cliDistDir, { recursive: true });
+  }
+  fs.copyFileSync(overlayPath, path.resolve(cliDistDir, 'overlay.js'));
+  console.log('[Annoty-CLI-Generator] Successfully mirrored overlay.js to packages/cli/dist/overlay.js');
 } catch (err) {
   console.error('[Annoty-CLI-Generator] Failed to generate installer:', err.message);
   process.exit(1);

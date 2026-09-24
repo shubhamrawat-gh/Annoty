@@ -4,6 +4,7 @@ export class PinManager {
   private container: HTMLElement;
   private shadowRoot: ShadowRoot;
   private pins: Map<string, HTMLElement> = new Map();
+  private highlightedElements: Set<HTMLElement> = new Set();
   private annotations: Annotation[] = [];
   private isVisible: boolean = true;
   private resizeObserver: ResizeObserver | null = null;
@@ -17,11 +18,11 @@ export class PinManager {
     this.container = document.createElement('div');
     this.container.className = 'annoty-pins-layer';
     this.container.style.cssText = `
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
+      width: 0;
+      height: 0;
       pointer-events: none;
       z-index: 2147483645;
     `;
@@ -37,7 +38,7 @@ export class PinManager {
         requestAnimationFrame(() => this.repositionAll());
       }
     };
-    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('scroll', update, { passive: true, capture: true });
     window.addEventListener('resize', update, { passive: true });
 
     // ResizeObserver for element resizing
@@ -57,8 +58,19 @@ export class PinManager {
   }
 
   public setAnnotations(annotations: Annotation[]) {
+    this.clearOutlines();
     this.annotations = annotations;
     this.renderPins();
+  }
+
+  public clearOutlines() {
+    this.highlightedElements.forEach((el) => {
+      if (el && el.style) {
+        el.style.outline = '';
+        el.style.outlineOffset = '';
+      }
+    });
+    this.highlightedElements.clear();
   }
 
   public toggleVisibility(force?: boolean): boolean {
@@ -66,11 +78,14 @@ export class PinManager {
     this.container.style.display = this.isVisible ? 'block' : 'none';
     if (this.isVisible) {
       this.repositionAll();
+    } else {
+      this.clearOutlines();
     }
     return this.isVisible;
   }
 
   public renderPins() {
+    this.clearOutlines();
     this.container.innerHTML = '';
     this.pins.clear();
 
@@ -81,61 +96,41 @@ export class PinManager {
       const el = document.querySelector(anno.selector) as HTMLElement | null;
 
       const pin = document.createElement('div');
-      pin.className = `annoty-pin annoty-pin-state-${anno.state || 'pending'} annoty-pin-sev-${anno.severity || 'medium'}`;
+      const state = anno.state || 'pending';
+      const severity = anno.severity || 'medium';
+      pin.className = `annoty-pin annoty-pin-state-${state} annoty-pin-sev-${severity}`;
       pin.setAttribute('data-annoty-pin-id', anno.id);
-      pin.style.cssText = `
-        position: absolute;
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background: #1f6feb;
-        color: #ffffff;
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        font-size: 12px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.9);
-        pointer-events: auto;
-        cursor: pointer;
-        user-select: none;
-        transition: transform 0.15s ease, background-color 0.15s ease;
-        transform: translate(-50%, -50%);
+      pin.setAttribute('data-pin-num', String(pinNumber));
+
+      pin.innerHTML = `
+        <span class="annoty-pin-num">${pinNumber}</span>
+        <span class="annoty-pin-pulse"></span>
       `;
 
-      if (anno.severity === 'critical') {
-        pin.style.background = '#da3633';
-      } else if (anno.severity === 'high') {
-        pin.style.background = '#d29922';
-      } else if (anno.state === 'resolved') {
-        pin.style.background = '#238636';
-        pin.style.opacity = '0.75';
-      }
-
-      pin.textContent = String(pinNumber);
-
       // Tooltip preview
-      pin.title = `[#${pinNumber}] ${anno.category ? `(${anno.category.toUpperCase()}) ` : ''}${anno.instruction}\nClick to view`;
+      pin.title = `[#${pinNumber}] ${anno.category ? `(${anno.category.toUpperCase()}) ` : ''}${anno.instruction}\nClick to view/edit`;
 
       pin.addEventListener('mouseenter', () => {
-        pin.style.transform = 'translate(-50%, -50%) scale(1.25)';
+        pin.classList.add('annoty-pin-hover');
         if (el) {
-          el.style.outline = '2px dashed #58a6ff';
+          el.style.outline = '2px dashed #3ecf8e';
           el.style.outlineOffset = '2px';
+          this.highlightedElements.add(el);
         }
       });
 
       pin.addEventListener('mouseleave', () => {
-        pin.style.transform = 'translate(-50%, -50%) scale(1)';
+        pin.classList.remove('annoty-pin-hover');
         if (el) {
           el.style.outline = '';
           el.style.outlineOffset = '';
+          this.highlightedElements.delete(el);
         }
       });
 
       pin.addEventListener('click', (e) => {
         e.stopPropagation();
+        this.clearOutlines();
         if (this.onPinClick) {
           this.onPinClick(anno);
         }
@@ -160,15 +155,28 @@ export class PinManager {
       const el = document.querySelector(anno.selector) as HTMLElement | null;
       if (el && el.isConnected) {
         const rect = el.getBoundingClientRect();
-        // Position pin at top-right corner of target element
-        const top = rect.top + window.scrollY;
-        const left = rect.right + window.scrollX;
+
+        // Check if element is completely off-screen
+        const isOffscreen =
+          rect.bottom < 0 ||
+          rect.top > window.innerHeight ||
+          rect.right < 0 ||
+          rect.left > window.innerWidth;
+
+        if (isOffscreen) {
+          pin.style.display = 'none';
+          return;
+        }
+
+        // Pin attaches to top-right corner of element (fixed viewport coordinates)
+        const top = Math.round(rect.top);
+        const left = Math.round(rect.right);
 
         pin.style.top = `${top}px`;
         pin.style.left = `${left}px`;
         pin.style.display = 'flex';
       } else {
-        // Fallback to recorded layout coordinates if DOM node is missing
+        // Fallback to recorded layout coordinates if DOM node is missing or unmounted
         if (anno.layout) {
           pin.style.top = `${anno.layout.y}px`;
           pin.style.left = `${anno.layout.x + anno.layout.width}px`;
@@ -181,6 +189,7 @@ export class PinManager {
   }
 
   public destroy() {
+    this.clearOutlines();
     this.resizeObserver?.disconnect();
     this.mutationObserver?.disconnect();
     this.container.remove();

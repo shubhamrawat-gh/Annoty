@@ -33,32 +33,68 @@ import {
   PromptHistoryStore,
 } from './types';
 
-function isLocalhost(): boolean {
-  const hn = window.location.hostname;
-  return hn === 'localhost' || hn === '127.0.0.1' || hn === '[::1]' || hn === '';
-}
+let isInitialized = false;
 
-function hasDevAttribute(): boolean {
-  const script = document.querySelector('script[data-annoty-mode="dev"]');
-  if (script) return true;
+function isDevEnvironment(): boolean {
+  if (typeof window === 'undefined') return false;
 
-  const scripts = document.getElementsByTagName('script');
-  for (let i = 0; i < scripts.length; i++) {
-    if (scripts[i].getAttribute('data-annoty-mode') === 'dev') {
+  // 1. Explicit developer override
+  if ((window as any).__ANNOTY_ENABLE__ === true || (window as any).__ANNOTY_DEV__ === true) {
+    return true;
+  }
+
+  // 2. Script tag attribute
+  const scriptTag =
+    document.querySelector('script[data-annoty-mode="dev"]') ||
+    Array.from(document.getElementsByTagName('script')).find(
+      (s) => s.getAttribute('data-annoty-mode') === 'dev'
+    );
+  if (scriptTag) return true;
+
+  // 3. Process / Bundler environment check
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV !== 'production') {
       return true;
     }
+  } catch {}
+
+  // 4. Hostname patterns (localhost, 127.0.0.1, 0.0.0.0, private LAN IPs, local domains)
+  const hn = window.location.hostname || '';
+  if (
+    hn === 'localhost' ||
+    hn === '127.0.0.1' ||
+    hn === '0.0.0.0' ||
+    hn === '[::1]' ||
+    hn === '' ||
+    hn.endsWith('.local') ||
+    hn.endsWith('.localhost') ||
+    hn.endsWith('.test') ||
+    hn.endsWith('.internal') ||
+    hn.endsWith('.nip.io') ||
+    hn.endsWith('.sslip.io') ||
+    /^192\.168\.\d+\.\d+$/.test(hn) ||
+    /^10\.\d+\.\d+\.\d+$/.test(hn) ||
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\.\d+\.\d+$/.test(hn) ||
+    window.location.protocol === 'file:'
+  ) {
+    return true;
   }
+
   return false;
 }
 
-async function init() {
-  // Security guard check: dev mode or localhost only
-  if (!isLocalhost() && !hasDevAttribute()) {
+export async function initAnnoty(): Promise<void> {
+  if (isInitialized) return;
+
+  // Security guard check: dev mode or local environment only
+  if (!isDevEnvironment()) {
     console.warn(
-      '[Annoty] Refusing to activate: Page is not served from localhost/127.0.0.1 and script tag is missing data-annoty-mode="dev". This guard prevents loading Annoty in production environments.'
+      '[Annoty] Refusing to activate: Production environment detected. Set window.__ANNOTY_ENABLE__ = true or use data-annoty-mode="dev" to activate.'
     );
     return;
   }
+
+  isInitialized = true;
 
   console.log('[Annoty] Initializing 100% on-device developer overlay...');
 
@@ -397,6 +433,16 @@ async function init() {
   };
 }
 
-init().catch((err) => {
-  console.error('[Annoty] Failed to initialize overlay:', err);
-});
+export default initAnnoty;
+
+// Auto-run if running in browser environment
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      initAnnoty().catch((err) => console.error('[Annoty] Failed to initialize overlay:', err));
+    });
+  } else {
+    initAnnoty().catch((err) => console.error('[Annoty] Failed to initialize overlay:', err));
+  }
+}
+
