@@ -113,7 +113,7 @@ export class PinManager {
       pin.addEventListener('mouseenter', () => {
         pin.classList.add('annoty-pin-hover');
         if (el) {
-          el.style.outline = '2px dashed #3ecf8e';
+          el.style.outline = '2px dashed #1c1c1c';
           el.style.outlineOffset = '2px';
           this.highlightedElements.add(el);
         }

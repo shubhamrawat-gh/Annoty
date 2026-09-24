@@ -24,7 +24,8 @@ export class Sidebar {
   // DOM Elements
   private sidebarEl!: HTMLDivElement;
   private listEl!: HTMLDivElement;
-  private groupSelectorEl!: HTMLDivElement;
+  private groupBarEl!: HTMLDivElement;
+  private groupDrawerEl!: HTMLDivElement;
   private tabsEl!: HTMLDivElement;
 
   // Preview panel elements
@@ -39,7 +40,9 @@ export class Sidebar {
 
   private isOpen = false;
   private activeTab: 'annotations' | 'history' = 'annotations';
-  private groupMode: 'normal' | 'create' | 'rename' = 'normal';
+  private isGroupDrawerOpen = false;
+  private editingGroupId: string | null = null;
+  private confirmDeleteGroupId: string | null = null;
   private previewFormat: 'markdown' | 'json' | 'plain' = 'markdown';
   private activeGroupAnnotations: Annotation[] = [];
   private onEditAnnotation: (anno: Annotation) => void;
@@ -90,23 +93,29 @@ export class Sidebar {
         <button class="annoty-tab-btn" data-tab="history">History</button>
       </div>
 
-      <!-- Group Selection Container -->
-      <div class="annoty-group-selector">
-        <button class="annoty-icon-btn annoty-group-add-btn" title="Create New Group">
-          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+      <!-- Group Selection Bar -->
+      <div class="annoty-group-bar">
+        <button class="annoty-group-pill-btn" title="Click to view & organize groups">
+          <span class="annoty-group-pill-icon">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          </span>
+          <span class="annoty-group-active-name">Default</span>
+          <span class="annoty-group-badge-count">0</span>
+          <svg class="annoty-group-chevron" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </button>
-        
-        <div class="annoty-group-main-area">
-          <!-- Dynamically swapped: dropdown OR inert placeholder OR inline text input -->
-        </div>
+        <button class="annoty-icon-btn annoty-group-quick-add-btn" title="Create New Group">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+      </div>
 
-        <div class="annoty-group-actions">
-          <button class="annoty-icon-btn annoty-group-rename-btn" title="Rename Group">
-            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path></svg>
-          </button>
-          <button class="annoty-icon-btn annoty-icon-btn-danger annoty-group-delete-btn" title="Delete Group (cascade deletes annotations)">
-            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-          </button>
+      <!-- Collapsible Group Organizer Panel -->
+      <div class="annoty-group-drawer" style="display: none;">
+        <div class="annoty-group-drawer-inner">
+          <div class="annoty-group-create-row">
+            <input type="text" class="annoty-group-create-input" placeholder="New group name…" />
+            <button class="annoty-btn annoty-btn-primary annoty-group-create-submit">+ Add</button>
+          </div>
+          <div class="annoty-group-drawer-list"></div>
         </div>
       </div>
       
@@ -151,7 +160,8 @@ export class Sidebar {
 
     // Bind DOM members
     this.listEl = this.sidebarEl.querySelector('.annoty-sidebar-list')!;
-    this.groupSelectorEl = this.sidebarEl.querySelector('.annoty-group-selector')!;
+    this.groupBarEl = this.sidebarEl.querySelector('.annoty-group-bar')!;
+    this.groupDrawerEl = this.sidebarEl.querySelector('.annoty-group-drawer')!;
     this.tabsEl = this.sidebarEl.querySelector('.annoty-sidebar-tabs')!;
     this.previewPanelEl = this.sidebarEl.querySelector('.annoty-preview-panel')!;
     this.previewAreaEl = this.sidebarEl.querySelector('.annoty-preview-area')!;
@@ -180,35 +190,57 @@ export class Sidebar {
         tabButtons.forEach((b) => b.classList.remove('active'));
         target.classList.add('active');
         this.activeTab = target.getAttribute('data-tab') as 'annotations' | 'history';
-        this.groupMode = 'normal';
+        this.isGroupDrawerOpen = false;
         this.render();
       });
     });
 
-    // Wire group control actions
-    this.sidebarEl.querySelector('.annoty-group-add-btn')!.addEventListener('click', () => {
-      this.groupMode = 'create';
-      this.renderGroupSelector();
+    // Group drawer toggle
+    const groupPillBtn = this.sidebarEl.querySelector('.annoty-group-pill-btn') as HTMLButtonElement;
+    const groupQuickAddBtn = this.sidebarEl.querySelector('.annoty-group-quick-add-btn') as HTMLButtonElement;
+    const createInput = this.sidebarEl.querySelector('.annoty-group-create-input') as HTMLInputElement;
+    const createSubmit = this.sidebarEl.querySelector('.annoty-group-create-submit') as HTMLButtonElement;
+
+    groupPillBtn.addEventListener('click', () => {
+      this.isGroupDrawerOpen = !this.isGroupDrawerOpen;
+      this.renderGroupSection();
     });
 
-    this.sidebarEl.querySelector('.annoty-group-rename-btn')!.addEventListener('click', async () => {
-      const active = await this.groupStore.getActive();
-      if (active) {
-        this.groupMode = 'rename';
-        this.renderGroupSelector();
-      }
+    groupQuickAddBtn.addEventListener('click', () => {
+      this.isGroupDrawerOpen = true;
+      this.renderGroupSection();
+      setTimeout(() => createInput.focus(), 60);
     });
 
-    this.sidebarEl.querySelector('.annoty-group-delete-btn')!.addEventListener('click', async () => {
-      const active = await this.groupStore.getActive();
-      if (active) {
-        if (
-          confirm(
-            `Delete the group "${active.name}"? This will cascade-delete its annotations. Prompts already generated in History will remain safe.`
-          )
-        ) {
-          await this.groupStore.delete(active.id);
+    const submitNewGroup = async () => {
+      const val = createInput.value.trim();
+      if (!val) return;
+      try {
+        const groups = await this.groupStore.list();
+        if (groups.some((g) => g.name.toLowerCase() === val.toLowerCase())) {
+          createInput.style.borderColor = '#dc2626';
+          return;
         }
+        createInput.style.borderColor = '';
+        const newGroup = await this.groupStore.create(val);
+        await this.groupStore.setActive(newGroup.id);
+        createInput.value = '';
+        this.isGroupDrawerOpen = false;
+        this.render();
+      } catch (err: any) {
+        console.error('[Annoty] Failed to create group:', err);
+      }
+    };
+
+    createSubmit.addEventListener('click', submitNewGroup);
+    createInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitNewGroup();
+      }
+      if (e.key === 'Escape') {
+        this.isGroupDrawerOpen = false;
+        this.renderGroupSection();
       }
     });
 
@@ -226,7 +258,7 @@ export class Sidebar {
       const wasOpen = localStorage.getItem('annoty:sidebar-open') === 'true';
       this.toggle(wasOpen);
     } catch {
-      this.toggle(false);
+      // Ignored
     }
   }
 
@@ -252,13 +284,14 @@ export class Sidebar {
 
     try {
       if (this.activeTab === 'annotations') {
-        this.groupSelectorEl.style.display = 'flex';
+        this.groupBarEl.style.display = 'flex';
         this.sidebarEl.querySelector('.annoty-sidebar-footer')!.setAttribute('style', 'display: flex;');
 
-        await this.renderGroupSelector();
+        await this.renderGroupSection();
         await this.renderAnnotationsList();
       } else {
-        this.groupSelectorEl.style.display = 'none';
+        this.groupBarEl.style.display = 'none';
+        this.groupDrawerEl.style.display = 'none';
         this.sidebarEl.querySelector('.annoty-sidebar-footer')!.setAttribute('style', 'display: none;');
 
         await this.renderHistoryList();
@@ -271,181 +304,163 @@ export class Sidebar {
     }
   }
 
-  private async renderGroupSelector(): Promise<void> {
-    const mainArea = this.sidebarEl.querySelector('.annoty-group-main-area') as HTMLDivElement;
-    const renameBtn = this.sidebarEl.querySelector('.annoty-group-rename-btn') as HTMLButtonElement;
-    const deleteBtn = this.sidebarEl.querySelector('.annoty-group-delete-btn') as HTMLButtonElement;
-    const addBtn = this.sidebarEl.querySelector('.annoty-group-add-btn') as HTMLButtonElement;
+  private async renderGroupSection(): Promise<void> {
+    const activeNameEl = this.sidebarEl.querySelector('.annoty-group-active-name') as HTMLElement;
+    const badgeCountEl = this.sidebarEl.querySelector('.annoty-group-badge-count') as HTMLElement;
+    const chevronEl = this.sidebarEl.querySelector('.annoty-group-chevron') as HTMLElement;
+    const listEl = this.sidebarEl.querySelector('.annoty-group-drawer-list') as HTMLElement;
 
     const groups = await this.groupStore.list();
     const active = await this.groupStore.getActive();
+    const annotations = await this.store.list();
 
-    // Disable rename/delete if no active group
-    renameBtn.disabled = !active;
-    deleteBtn.disabled = !active || groups.length <= 1;
+    const activeCount = active ? annotations.filter((a) => a.groupId === active.id).length : 0;
+    activeNameEl.textContent = active ? active.name : 'Select Group';
+    badgeCountEl.textContent = activeCount.toString();
 
-    if (this.groupMode === 'create') {
-      mainArea.innerHTML = '';
-      addBtn.disabled = true;
-      renameBtn.disabled = true;
-      deleteBtn.disabled = true;
-
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'annoty-group-inline-input';
-      input.placeholder = 'Group name…';
-      mainArea.appendChild(input);
-      input.focus();
-
-      let resolved = false;
-      const resolveInput = async () => {
-        if (resolved) return;
-
-        const val = input.value.trim();
-        if (val) {
-          try {
-            const currentGroups = await this.groupStore.list();
-            if (currentGroups.some((g) => g.name.toLowerCase() === val.toLowerCase())) {
-              alert(`A group with the name "${val}" already exists.`);
-              setTimeout(() => {
-                input.focus();
-              }, 50);
-              return;
-            }
-
-            resolved = true;
-            this.groupMode = 'normal';
-            addBtn.disabled = false;
-
-            const newGroup = await this.groupStore.create(val);
-            await this.groupStore.setActive(newGroup.id);
-          } catch (err: any) {
-            alert(err.message || 'Failed to create group.');
-            setTimeout(() => {
-              input.focus();
-            }, 50);
-          }
-        } else {
-          resolved = true;
-          this.groupMode = 'normal';
-          addBtn.disabled = false;
-          this.render();
-        }
-      };
-
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          input.blur();
-        }
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          input.value = '';
-          input.blur();
-        }
-      });
-
-      input.addEventListener('blur', resolveInput);
-    } else if (this.groupMode === 'rename' && active) {
-      mainArea.innerHTML = '';
-      addBtn.disabled = true;
-      renameBtn.disabled = true;
-      deleteBtn.disabled = true;
-
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.className = 'annoty-group-inline-input';
-      input.placeholder = 'Group name…';
-      input.value = active.name;
-      mainArea.appendChild(input);
-      input.focus();
-      input.select();
-
-      let resolved = false;
-      const resolveInput = async () => {
-        if (resolved) return;
-
-        const val = input.value.trim();
-        if (val) {
-          if (val === active.name) {
-            resolved = true;
-            this.groupMode = 'normal';
-            addBtn.disabled = false;
-            this.render();
-            return;
-          }
-
-          try {
-            const currentGroups = await this.groupStore.list();
-            if (currentGroups.some((g) => g.id !== active.id && g.name.toLowerCase() === val.toLowerCase())) {
-              alert(`A group with the name "${val}" already exists.`);
-              setTimeout(() => {
-                input.focus();
-              }, 50);
-              return;
-            }
-
-            resolved = true;
-            this.groupMode = 'normal';
-            addBtn.disabled = false;
-
-            await this.groupStore.rename(active.id, val);
-          } catch (err: any) {
-            alert(err.message || 'Failed to rename group.');
-            setTimeout(() => {
-              input.focus();
-            }, 50);
-          }
-        } else {
-          resolved = true;
-          this.groupMode = 'normal';
-          addBtn.disabled = false;
-          this.render();
-        }
-      };
-
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          input.blur();
-        }
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          input.value = active.name;
-          input.blur();
-        }
-      });
-
-      input.addEventListener('blur', resolveInput);
+    if (this.isGroupDrawerOpen) {
+      this.groupDrawerEl.style.display = 'block';
+      chevronEl.classList.add('is-open');
     } else {
-      // Normal Mode
-      addBtn.disabled = false;
+      this.groupDrawerEl.style.display = 'none';
+      chevronEl.classList.remove('is-open');
+      this.editingGroupId = null;
+      this.confirmDeleteGroupId = null;
+      return;
+    }
 
-      if (groups.length === 0) {
-        mainArea.innerHTML = '<div class="annoty-group-placeholder">No groups yet</div>';
-        renameBtn.disabled = true;
-        deleteBtn.disabled = true;
+    listEl.innerHTML = '';
+
+    groups.forEach((g) => {
+      const isSelected = active ? g.id === active.id : false;
+      const count = annotations.filter((a) => a.groupId === g.id).length;
+      const itemEl = document.createElement('div');
+      itemEl.className = `annoty-group-drawer-item ${isSelected ? 'is-active' : ''}`;
+
+      if (this.editingGroupId === g.id) {
+        // Inline Rename row
+        itemEl.innerHTML = `
+          <input type="text" class="annoty-group-rename-input" value="${this.escapeHtml(g.name)}" />
+          <div class="annoty-group-item-actions">
+            <button class="annoty-icon-btn annoty-group-rename-save" title="Save">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+            <button class="annoty-icon-btn annoty-group-rename-cancel" title="Cancel">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        `;
+
+        const renameInput = itemEl.querySelector('.annoty-group-rename-input') as HTMLInputElement;
+        const saveRename = async () => {
+          const val = renameInput.value.trim();
+          if (val && val !== g.name) {
+            await this.groupStore.rename(g.id, val);
+          }
+          this.editingGroupId = null;
+          this.renderGroupSection();
+        };
+
+        itemEl.querySelector('.annoty-group-rename-save')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          saveRename();
+        });
+        itemEl.querySelector('.annoty-group-rename-cancel')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.editingGroupId = null;
+          this.renderGroupSection();
+        });
+        renameInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            saveRename();
+          }
+          if (e.key === 'Escape') {
+            this.editingGroupId = null;
+            this.renderGroupSection();
+          }
+        });
+        setTimeout(() => {
+          renameInput.focus();
+          renameInput.select();
+        }, 30);
       } else {
-        mainArea.innerHTML = '<select class="annoty-group-select"></select>';
-        const select = mainArea.querySelector('.annoty-group-select') as HTMLSelectElement;
+        // Normal group row
+        let deleteActionHtml = '';
+        if (this.confirmDeleteGroupId === g.id) {
+          deleteActionHtml = `
+            <button class="annoty-btn-confirm-delete" title="Confirm deletion">Delete?</button>
+            <button class="annoty-icon-btn annoty-cancel-delete" title="Cancel">✕</button>
+          `;
+        } else {
+          const deleteDisabled = groups.length <= 1;
+          deleteActionHtml = `
+            <button class="annoty-icon-btn annoty-row-rename-btn" title="Rename Group">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4Z"></path></svg>
+            </button>
+            ${
+              !deleteDisabled
+                ? `
+              <button class="annoty-icon-btn annoty-icon-btn-danger annoty-row-delete-btn" title="Delete Group">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+            `
+                : ''
+            }
+          `;
+        }
 
-        const annotations = await this.store.list();
+        itemEl.innerHTML = `
+          <div class="annoty-group-item-left">
+            <span class="annoty-group-item-radio">${isSelected ? '●' : '○'}</span>
+            <span class="annoty-group-item-name">${this.escapeHtml(g.name)}</span>
+            <span class="annoty-group-item-count">${count}</span>
+          </div>
+          <div class="annoty-group-item-actions">
+            ${deleteActionHtml}
+          </div>
+        `;
 
-        groups.forEach((g) => {
-          const opt = document.createElement('option');
-          opt.value = g.id;
-          opt.selected = active ? g.id === active.id : false;
-
-          const count = annotations.filter((a) => a.groupId === g.id).length;
-          opt.textContent = `${opt.selected ? '✓ ' : ''}${g.name} (${count})`;
-          select.appendChild(opt);
+        // Click row to activate
+        itemEl.querySelector('.annoty-group-item-left')?.addEventListener('click', async () => {
+          await this.groupStore.setActive(g.id);
+          this.isGroupDrawerOpen = false;
+          this.render();
         });
 
-        select.addEventListener('change', async () => {
-          await this.groupStore.setActive(select.value);
+        // Rename button
+        itemEl.querySelector('.annoty-row-rename-btn')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.editingGroupId = g.id;
+          this.confirmDeleteGroupId = null;
+          this.renderGroupSection();
+        });
+
+        // Delete button
+        itemEl.querySelector('.annoty-row-delete-btn')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.confirmDeleteGroupId = g.id;
+          this.renderGroupSection();
+        });
+
+        // Confirm delete button
+        itemEl.querySelector('.annoty-btn-confirm-delete')?.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          await this.groupStore.delete(g.id);
+          this.confirmDeleteGroupId = null;
+          this.render();
+        });
+
+        // Cancel delete button
+        itemEl.querySelector('.annoty-cancel-delete')?.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.confirmDeleteGroupId = null;
+          this.renderGroupSection();
         });
       }
-    }
+
+      listEl.appendChild(itemEl);
+    });
   }
 
   private async renderAnnotationsList(): Promise<void> {
@@ -498,18 +513,6 @@ export class Sidebar {
           ? `<span class="annoty-item-diag-badge" title="${anno.diagnostics.map((d) => d.message).join(' | ')}">⚠ ${anno.diagnostics.length}</span>`
           : '';
 
-      // Chips
-      const categories = detectCategories(anno.instruction);
-      let chipsHtml = '';
-      if (anno.category) {
-        chipsHtml += `<span class="annoty-chip annoty-chip-${anno.category} is-active" style="padding: 1px 6px; font-size: 10px;">${anno.category}</span>`;
-      }
-      categories.forEach((cat) => {
-        if (cat !== anno.category) {
-          chipsHtml += `<span class="annoty-chip" style="padding: 1px 6px; font-size: 10px;">${cat.replace(/-/g, ' ')}</span>`;
-        }
-      });
-
       // Thumbnail
       let thumbHtml = '';
       if (anno.screenshotBase64) {
@@ -529,9 +532,6 @@ export class Sidebar {
               </button>
             </div>
             <span class="annoty-item-file" title="${this.escapeHtml(fileLabel)}">${this.escapeHtml(fileLabel)}</span>
-            <div class="annoty-item-chips" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
-              ${chipsHtml}
-            </div>
           </div>
           <div class="annoty-item-actions">
             <button class="annoty-icon-btn annoty-edit-btn" title="Edit instruction">
@@ -559,19 +559,22 @@ export class Sidebar {
       thumbImg?.addEventListener('click', (e) => {
         e.stopPropagation();
         if (anno.screenshotBase64) {
-          downloadScreenshot(anno.screenshotBase64, `annoty-element-${anno.pinNumber || index + 1}.png`);
+          downloadScreenshot(anno.screenshotBase64, `annoty-element-${anno.pinNumber || 'snap'}.png`);
         }
       });
 
-      itemEl.querySelector('.annoty-edit-btn')!.addEventListener('click', () => {
+      // Edit annotation handler
+      const editBtn = itemEl.querySelector('.annoty-edit-btn');
+      editBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
         this.onEditAnnotation(anno);
       });
 
-      itemEl.querySelector('.annoty-delete-btn')!.addEventListener('click', async () => {
-        if (confirm('Delete this annotation?')) {
-          await this.store.delete(anno.id);
-          await this.render();
-        }
+      // Delete annotation handler
+      const deleteBtn = itemEl.querySelector('.annoty-delete-btn');
+      deleteBtn?.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await this.store.delete(anno.id);
       });
 
       this.listEl.appendChild(itemEl);
@@ -583,57 +586,55 @@ export class Sidebar {
     this.listEl.innerHTML = '';
 
     if (history.length === 0) {
-      this.renderEmptyState('No generated prompts in history yet.');
+      this.renderEmptyState('No prompt history yet. Generate a prompt to preserve a snapshot session here.');
       return;
     }
 
     history.forEach((entry) => {
       const itemEl = document.createElement('div');
-      itemEl.className = 'annoty-item';
+      itemEl.className = 'annoty-item annoty-history-item';
 
-      const timeStr = this.getRelativeTimeString(entry.generatedAt);
+      const timeFormatted = this.getRelativeTimeString(entry.generatedAt);
 
       itemEl.innerHTML = `
         <div class="annoty-history-item-header">
           <div class="annoty-history-item-top">
             <div class="annoty-history-title-block">
               <span class="annoty-history-group-name">${this.escapeHtml(entry.groupName)}</span>
-              <span class="annoty-history-time">${this.escapeHtml(timeStr)}</span>
+              <span class="annoty-history-time">${timeFormatted}</span>
             </div>
             <div class="annoty-history-actions">
-              <button class="annoty-btn annoty-btn-secondary annoty-copy-again-btn" style="padding: 3px 8px; font-size: 10px;">
-                Copy
-              </button>
-              <button class="annoty-icon-btn annoty-icon-btn-danger annoty-history-delete-btn" title="Delete from history">
-                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              <button class="annoty-icon-btn annoty-history-copy-btn" title="Copy Snapshot Prompt">
+                <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               </button>
             </div>
           </div>
           <div class="annoty-history-meta">
-            <span>${entry.annotationCount} element${entry.annotationCount === 1 ? '' : 's'}</span>
+            <span>${entry.annotationCount} annotations</span>
           </div>
         </div>
       `;
 
-      itemEl.querySelector('.annoty-copy-again-btn')!.addEventListener('click', () => {
+      itemEl.querySelector('.annoty-history-copy-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
         this.copyTextToClipboard(entry.markdown);
       });
 
-      itemEl.querySelector('.annoty-history-delete-btn')!.addEventListener('click', async () => {
-        if (confirm('Delete this history entry?')) {
-          await this.historyStore.delete(entry.id);
-        }
+      itemEl.addEventListener('click', () => {
+        this.previewAreaEl.textContent = entry.markdown;
+        this.previewPanelEl.style.display = 'flex';
       });
 
       this.listEl.appendChild(itemEl);
     });
   }
 
-  private renderEmptyState(text: string): void {
+  private renderEmptyState(message: string): void {
     this.listEl.innerHTML = `
       <div class="annoty-empty-state">
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-        <p class="annoty-empty-text" style="font-size: 13px; line-height: 1.4;">${this.escapeHtml(text)}</p>
+        <p class="annoty-empty-text">No items found</p>
+        <p class="annoty-empty-subtext">${this.escapeHtml(message)}</p>
       </div>
     `;
   }
@@ -644,9 +645,7 @@ export class Sidebar {
 
     const annotations = await this.store.list();
     const filtered = annotations.filter((a) => a.groupId === activeGroup.id);
-
     if (filtered.length === 0) return;
-    this.activeGroupAnnotations = filtered;
 
     const markdown = compileToMarkdown(filtered);
 
@@ -732,7 +731,7 @@ export class Sidebar {
       await this.store.clear();
       await this.groupStore.clear();
       this.hidePreviewPanel();
-      this.groupMode = 'normal';
+      this.isGroupDrawerOpen = false;
       await this.render();
     }
   }

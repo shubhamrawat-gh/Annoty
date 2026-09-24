@@ -13,34 +13,20 @@ import {
   getDOMBreadcrumbs,
   runUIDiagnostics,
 } from '../styleInspector';
-import { StyleDiffEngine, StyleDiffReport } from '../styleDiffEngine';
-import { captureElementScreenshot } from '../screenshotCapture';
-
-const CATEGORIES: { id: AnnotationCategory; label: string }[] = [
-  { id: 'visual', label: 'Visual' },
-  { id: 'bug', label: 'Bug' },
-  { id: 'feature', label: 'Feature' },
-  { id: 'responsive', label: 'Responsive' },
-  { id: 'accessibility', label: 'A11y' },
-  { id: 'performance', label: 'Perf' },
-  { id: 'content', label: 'Content' },
-  { id: 'refactor', label: 'Refactor' },
-];
-
-const SEVERITIES: { id: AnnotationSeverity; label: string }[] = [
-  { id: 'low', label: 'Low' },
-  { id: 'medium', label: 'Med' },
-  { id: 'high', label: 'High' },
-  { id: 'critical', label: 'Critical' },
-];
+import { detectCategories } from '../categoryDetector';
 
 export class Popup {
   private shadowRoot: ShadowRoot;
   private store: AnnotationStore;
   private popupEl: HTMLDivElement | null = null;
-  private diffModalEl: HTMLDivElement | null = null;
   private onClosed: () => void;
   private onRetarget?: (el: HTMLElement) => void;
+
+  // Dragging event cleanup handlers
+  private activeDragMoveHandler: ((e: MouseEvent) => void) | null = null;
+  private activeDragUpHandler: (() => void) | null = null;
+  private activeTouchMoveHandler: ((e: TouchEvent) => void) | null = null;
+  private activeTouchEndHandler: (() => void) | null = null;
 
   constructor(
     shadowRoot: ShadowRoot,
@@ -72,17 +58,9 @@ export class Popup {
     const breadcrumbs = el ? getDOMBreadcrumbs(el) : [];
     const diagnostics = el ? runUIDiagnostics(el) : [];
 
-    let selectedCategory: AnnotationCategory = existingAnnotation?.category || 'visual';
-    let selectedSeverity: AnnotationSeverity = existingAnnotation?.severity || 'medium';
-    let selectedState: AnnotationState = existingAnnotation?.state || 'pending';
-    let capturedScreenshot: string = existingAnnotation?.screenshotBase64 || '';
-
-    // Check style baseline & diff
-    let diffReport: StyleDiffReport | null = null;
-    const hasBaseline = !!StyleDiffEngine.getBaseline(mappingResult.selector);
-    if (hasBaseline && computedStyles && layout) {
-      diffReport = StyleDiffEngine.compare(mappingResult.selector, computedStyles, layout);
-    }
+    const selectedCategory: AnnotationCategory = existingAnnotation?.category || 'visual';
+    const selectedSeverity: AnnotationSeverity = existingAnnotation?.severity || 'medium';
+    const selectedState: AnnotationState = existingAnnotation?.state || 'pending';
 
     const cleanTagName = mappingResult.elementSnapshot
       ? mappingResult.elementSnapshot.match(/^<([a-zA-Z0-9-]+)/)?.[0] || 'element'
@@ -96,8 +74,8 @@ export class Popup {
       : 'Unmapped element';
 
     const sourceIcon = hasSource
-      ? `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`
-      : `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+      ? `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`
+      : `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
 
     // Build breadcrumbs HTML
     let breadcrumbsHtml = '';
@@ -141,18 +119,20 @@ export class Popup {
     const dimensionsBadge = layout
       ? `<span class="annoty-spec-pill" title="Element Dimensions">${layout.width} × ${layout.height}px</span>`
       : '';
-    const viewportBadge = `<span class="annoty-spec-pill" title="Viewport Preset">${viewport.width} × ${viewport.height} (${viewport.preset})</span>`;
-
-    // Baseline action label
-    let baselineBtnLabel = '📸 Set Baseline';
-    if (diffReport) {
-      baselineBtnLabel = diffReport.hasChanges
-        ? `⚡ Diff (${diffReport.totalChanges} changes)`
-        : '✓ Matches Baseline';
-    }
+    const viewportBadge = `<span class="annoty-spec-pill" title="Viewport Preset">${viewport.width} × ${viewport.height}</span>`;
 
     this.popupEl.innerHTML = `
-      <div class="annoty-popup-header">
+      <div class="annoty-popup-header" title="Drag to move anywhere">
+        <div class="annoty-popup-drag-handle" title="Drag to move anywhere">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="6" r="1.5"></circle>
+            <circle cx="15" cy="6" r="1.5"></circle>
+            <circle cx="9" cy="12" r="1.5"></circle>
+            <circle cx="15" cy="12" r="1.5"></circle>
+            <circle cx="9" cy="18" r="1.5"></circle>
+            <circle cx="15" cy="18" r="1.5"></circle>
+          </svg>
+        </div>
         <div class="annoty-popup-title-row">
           <h3 class="annoty-popup-title">${existingAnnotation ? 'Edit Annotation' : 'Add Annotation'}</h3>
           <div class="annoty-specs-row">${dimensionsBadge}${viewportBadge}</div>
@@ -175,53 +155,10 @@ export class Popup {
 
         ${diagnosticsHtml}
 
-        <!-- Element Action Toolbar: Screenshot & Baseline Diff -->
-        <div style="display: flex; gap: 6px; margin-top: 8px;">
-          <button type="button" class="annoty-spec-pill annoty-snap-btn" style="cursor: pointer; padding: 3px 8px; font-weight: 500;">
-            📷 Snap
-          </button>
-          <button type="button" class="annoty-spec-pill annoty-baseline-btn" style="cursor: pointer; padding: 3px 8px; font-weight: 500;">
-            ${baselineBtnLabel}
-          </button>
-        </div>
-
-        <!-- Thumbnail preview if captured -->
-        <div class="annoty-popup-thumb-container" style="display: ${capturedScreenshot ? 'block' : 'none'}; margin-top: 8px;">
-          <img class="annoty-item-thumb annoty-popup-thumb" src="${capturedScreenshot}" style="max-height: 70px;" />
-        </div>
-
-        <!-- Categories -->
-        <div class="annoty-chips-section">
-          <div class="annoty-chips-label">CATEGORY</div>
-          <div class="annoty-chips-list" id="annotyCategoryChips">
-            ${CATEGORIES.map(
-              (c) => `
-              <button type="button" class="annoty-chip ${c.id === selectedCategory ? 'is-active' : ''}" data-cat="${c.id}">
-                ${c.label}
-              </button>
-            `
-            ).join('')}
-          </div>
-        </div>
-
-        <!-- Severities -->
-        <div class="annoty-chips-section">
-          <div class="annoty-chips-label">SEVERITY</div>
-          <div class="annoty-chips-list" id="annotySeverityChips">
-            ${SEVERITIES.map(
-              (s) => `
-              <button type="button" class="annoty-chip annoty-chip-sev-${s.id} ${s.id === selectedSeverity ? 'is-active' : ''}" data-sev="${s.id}">
-                ${s.label}
-              </button>
-            `
-            ).join('')}
-          </div>
-        </div>
-
         <textarea 
           class="annoty-textarea" 
-          placeholder="What should change? (e.g., increase padding to 12px, fix contrast on mobile)"
-          rows="3"
+          placeholder="What should change? (e.g., increase padding, adjust alignment, fix copy)"
+          rows="4"
         >${this.escapeHtml(existingAnnotation ? existingAnnotation.instruction : '')}</textarea>
       </div>
 
@@ -233,73 +170,20 @@ export class Popup {
 
     this.shadowRoot.appendChild(this.popupEl);
 
+    // Initial position
+    this.positionPopup(el);
+
+    // Setup dragging handlers so the user can move the popup anywhere
+    this.initDraggable();
+
     // Event listeners
     const closeBtn = this.popupEl.querySelector('.annoty-popup-close');
     const cancelBtn = this.popupEl.querySelector('.annoty-cancel-btn');
     const saveBtn = this.popupEl.querySelector('.annoty-save-btn');
     const textarea = this.popupEl.querySelector('.annoty-textarea') as HTMLTextAreaElement;
-    const snapBtn = this.popupEl.querySelector('.annoty-snap-btn') as HTMLButtonElement;
-    const baselineBtn = this.popupEl.querySelector('.annoty-baseline-btn') as HTMLButtonElement;
-    const thumbContainer = this.popupEl.querySelector('.annoty-popup-thumb-container') as HTMLDivElement;
-    const thumbImg = this.popupEl.querySelector('.annoty-popup-thumb') as HTMLImageElement;
 
     closeBtn?.addEventListener('click', () => this.close());
     cancelBtn?.addEventListener('click', () => this.close());
-
-    // Screenshot capture button
-    snapBtn?.addEventListener('click', async () => {
-      if (!el) return;
-      snapBtn.textContent = 'Snapping…';
-      try {
-        const dataUrl = await captureElementScreenshot(el);
-        if (dataUrl) {
-          capturedScreenshot = dataUrl;
-          thumbImg.src = dataUrl;
-          thumbContainer.style.display = 'block';
-          snapBtn.textContent = '✓ Snapped';
-        } else {
-          snapBtn.textContent = '📷 Snap';
-        }
-      } catch {
-        snapBtn.textContent = '📷 Snap';
-      }
-    });
-
-    // Baseline / Diff button
-    baselineBtn?.addEventListener('click', () => {
-      if (!computedStyles || !layout) return;
-
-      if (!hasBaseline) {
-        StyleDiffEngine.saveBaseline(mappingResult.selector, computedStyles, layout);
-        baselineBtn.textContent = '✓ Baseline Saved';
-      } else if (diffReport && diffReport.hasChanges) {
-        this.openDiffModal(diffReport);
-      } else {
-        // Allow updating baseline
-        if (confirm('A baseline already exists for this element. Update baseline to current styles?')) {
-          StyleDiffEngine.saveBaseline(mappingResult.selector, computedStyles, layout);
-          baselineBtn.textContent = '✓ Updated Baseline';
-        }
-      }
-    });
-
-    // Category chips selection
-    this.popupEl.querySelectorAll('#annotyCategoryChips .annoty-chip').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        this.popupEl?.querySelectorAll('#annotyCategoryChips .annoty-chip').forEach((b) => b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        selectedCategory = btn.getAttribute('data-cat') as AnnotationCategory;
-      });
-    });
-
-    // Severity chips selection
-    this.popupEl.querySelectorAll('#annotySeverityChips .annoty-chip').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        this.popupEl?.querySelectorAll('#annotySeverityChips .annoty-chip').forEach((b) => b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        selectedSeverity = btn.getAttribute('data-sev') as AnnotationSeverity;
-      });
-    });
 
     // Breadcrumb parent retargeting
     if (el && this.onRetarget) {
@@ -331,6 +215,8 @@ export class Popup {
 
       const all = await this.store.list();
       const pinNumber = existingAnnotation?.pinNumber || all.length + 1;
+      const autoCategories = detectCategories(text);
+      const categoryToSave = existingAnnotation?.category || (autoCategories.length > 0 ? (autoCategories[0] as AnnotationCategory) : selectedCategory);
 
       const annotation: Annotation = {
         id: existingAnnotation ? existingAnnotation.id : (crypto.randomUUID ? crypto.randomUUID() : `anno_${Date.now()}`),
@@ -347,7 +233,7 @@ export class Popup {
         componentName: mappingResult.componentName,
         landmarkContext: mappingResult.landmarkContext,
         groupId: existingAnnotation ? existingAnnotation.groupId : (activeGroupId || 'default'),
-        category: selectedCategory,
+        category: categoryToSave,
         severity: selectedSeverity,
         state: selectedState,
         layout,
@@ -355,7 +241,6 @@ export class Popup {
         computedStyles,
         domBreadcrumbs: breadcrumbs,
         diagnostics,
-        screenshotBase64: capturedScreenshot || undefined,
       };
 
       try {
@@ -367,72 +252,130 @@ export class Popup {
       }
     });
 
-    setTimeout(() => textarea.focus(), 50);
-    this.positionPopup(el);
+    setTimeout(() => textarea.focus(), 60);
   }
 
-  private openDiffModal(report: StyleDiffReport): void {
-    this.closeDiffModal();
+  private initDraggable(): void {
+    if (!this.popupEl) return;
 
-    this.diffModalEl = document.createElement('div');
-    this.diffModalEl.className = 'annoty-diff-modal';
+    const header = this.popupEl.querySelector('.annoty-popup-header') as HTMLElement | null;
+    if (!header) return;
 
-    const rows = report.diffs
-      .map(
-        (d) => `
-      <tr>
-        <td><strong>${this.escapeHtml(d.property)}</strong></td>
-        <td><span class="annoty-diff-before">${this.escapeHtml(d.before)}</span></td>
-        <td><span class="annoty-diff-after">${this.escapeHtml(d.after)}</span></td>
-        <td>${d.delta ? `<span class="annoty-diff-delta">${this.escapeHtml(d.delta)}</span>` : '-'}</td>
-      </tr>
-    `
-      )
-      .join('');
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let initialLeft = 0;
+    let initialTop = 0;
 
-    this.diffModalEl.innerHTML = `
-      <div class="annoty-diff-header">
-        <h3 class="annoty-diff-title">BEFORE → AFTER Style Diff</h3>
-        <button class="annoty-icon-btn annoty-diff-close" title="Close">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-      <div class="annoty-diff-body">
-        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
-          Selector: <code>${this.escapeHtml(report.selector)}</code><br/>
-          Total Property Changes: <strong>${report.totalChanges}</strong>
-        </div>
-        <table class="annoty-diff-table">
-          <thead>
-            <tr>
-              <th>Property</th>
-              <th>Before</th>
-              <th>After</th>
-              <th>Delta</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows}
-          </tbody>
-        </table>
-      </div>
-    `;
+    const onMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      if ((e.target as HTMLElement).closest('.annoty-popup-close')) return;
 
-    this.shadowRoot.appendChild(this.diffModalEl);
-    this.diffModalEl.querySelector('.annoty-diff-close')?.addEventListener('click', () => {
-      this.closeDiffModal();
-    });
-  }
+      isDragging = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
 
-  private closeDiffModal(): void {
-    if (this.diffModalEl) {
-      this.diffModalEl.remove();
-      this.diffModalEl = null;
-    }
+      const rect = this.popupEl!.getBoundingClientRect();
+      initialLeft = rect.left;
+      initialTop = rect.top;
+
+      header.style.cursor = 'grabbing';
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+      e.preventDefault();
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !this.popupEl) return;
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+
+      const rect = this.popupEl.getBoundingClientRect();
+      const margin = 8;
+      const maxLeft = Math.max(margin, window.innerWidth - rect.width - margin);
+      const maxTop = Math.max(margin, window.innerHeight - rect.height - margin);
+
+      const newLeft = Math.min(Math.max(margin, initialLeft + dx), maxLeft);
+      const newTop = Math.min(Math.max(margin, initialTop + dy), maxTop);
+
+      this.popupEl.style.left = `${Math.round(newLeft)}px`;
+      this.popupEl.style.top = `${Math.round(newTop)}px`;
+      this.popupEl.style.transform = 'none';
+    };
+
+    const onMouseUp = () => {
+      isDragging = false;
+      if (header) header.style.cursor = 'grab';
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if ((e.target as HTMLElement).closest('.annoty-popup-close')) return;
+      if (e.touches.length !== 1) return;
+
+      isDragging = true;
+      const t = e.touches[0];
+      dragStartX = t.clientX;
+      dragStartY = t.clientY;
+
+      const rect = this.popupEl!.getBoundingClientRect();
+      initialLeft = rect.left;
+      initialTop = rect.top;
+
+      document.addEventListener('touchmove', onTouchMove, { passive: false });
+      document.addEventListener('touchend', onTouchEnd);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isDragging || !this.popupEl) return;
+      e.preventDefault();
+      const t = e.touches[0];
+      const dx = t.clientX - dragStartX;
+      const dy = t.clientY - dragStartY;
+
+      const rect = this.popupEl.getBoundingClientRect();
+      const margin = 8;
+      const maxLeft = Math.max(margin, window.innerWidth - rect.width - margin);
+      const maxTop = Math.max(margin, window.innerHeight - rect.height - margin);
+
+      const newLeft = Math.min(Math.max(margin, initialLeft + dx), maxLeft);
+      const newTop = Math.min(Math.max(margin, initialTop + dy), maxTop);
+
+      this.popupEl.style.left = `${Math.round(newLeft)}px`;
+      this.popupEl.style.top = `${Math.round(newTop)}px`;
+      this.popupEl.style.transform = 'none';
+    };
+
+    const onTouchEnd = () => {
+      isDragging = false;
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+    };
+
+    header.addEventListener('mousedown', onMouseDown);
+    header.addEventListener('touchstart', onTouchStart, { passive: true });
+
+    this.activeDragMoveHandler = onMouseMove;
+    this.activeDragUpHandler = onMouseUp;
+    this.activeTouchMoveHandler = onTouchMove;
+    this.activeTouchEndHandler = onTouchEnd;
   }
 
   public close(): void {
-    this.closeDiffModal();
+    if (this.activeDragMoveHandler && this.activeDragUpHandler) {
+      document.removeEventListener('mousemove', this.activeDragMoveHandler);
+      document.removeEventListener('mouseup', this.activeDragUpHandler);
+      this.activeDragMoveHandler = null;
+      this.activeDragUpHandler = null;
+    }
+    if (this.activeTouchMoveHandler && this.activeTouchEndHandler) {
+      document.removeEventListener('touchmove', this.activeTouchMoveHandler);
+      document.removeEventListener('touchend', this.activeTouchEndHandler);
+      this.activeTouchMoveHandler = null;
+      this.activeTouchEndHandler = null;
+    }
+
     if (this.popupEl) {
       this.popupEl.remove();
       this.popupEl = null;
@@ -452,8 +395,8 @@ export class Popup {
 
     const rect = targetEl.getBoundingClientRect();
     const margin = 12;
-    const popupWidth = 360;
-    const popupHeight = 320;
+    const popupWidth = 340;
+    const popupHeight = 260;
 
     let top = rect.bottom + margin;
     let left = rect.left;
@@ -473,6 +416,7 @@ export class Popup {
 
     this.popupEl.style.top = `${Math.round(top)}px`;
     this.popupEl.style.left = `${Math.round(left)}px`;
+    this.popupEl.style.transform = 'none';
   }
 
   private escapeHtml(str: string): string {

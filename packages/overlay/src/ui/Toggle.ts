@@ -48,6 +48,16 @@ export class ToggleButton {
     // Left button: Picker Toggle
     // Right button: Sidebar Toggle (with badge)
     this.el.innerHTML = `
+      <div class="annoty-toggle-grip" title="Drag to move anywhere">
+        <svg viewBox="0 0 24 24" width="10" height="16" fill="currentColor">
+          <circle cx="7" cy="5" r="1.5"></circle>
+          <circle cx="13" cy="5" r="1.5"></circle>
+          <circle cx="7" cy="12" r="1.5"></circle>
+          <circle cx="13" cy="12" r="1.5"></circle>
+          <circle cx="7" cy="19" r="1.5"></circle>
+          <circle cx="13" cy="19" r="1.5"></circle>
+        </svg>
+      </div>
       <button class="annoty-control-btn annoty-picker-toggle" title="Toggle Selection Mode (Alt+A)">
         <svg viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="10"></circle>

@@ -1,27 +1,32 @@
 export const CSS_STYLES = `
 :host {
-  --bg-main: #0B0C0E;
-  --bg-surface: #13151A;
-  --bg-surface-glass: rgba(19, 21, 26, 0.88);
-  --bg-input: #1C1F26;
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-subtle-bright: rgba(255, 255, 255, 0.14);
-  --border-focus: #3ecf8e;
+  /* Lovable Design System Palette */
+  --bg-main: #f7f4ed;
+  --bg-surface: #fcfbf8;
+  --bg-card: #ffffff;
+  --bg-input: #ffffff;
+  --border-subtle: #eceae4;
+  --border-subtle-bright: #e2dfd7;
+  --border-interactive: rgba(28, 28, 28, 0.4);
+  --border-focus: #1c1c1c;
   
-  --text-primary: #f4f4f5;
-  --text-muted: #9ca3af;
-  --text-dim: #6b7280;
-  --text-error: #f87171;
+  --text-primary: #1c1c1c;
+  --text-muted: #5f5f5d;
+  --text-dim: #8a8880;
+  --text-error: #dc2626;
   
-  --accent: #3ecf8e;
-  --accent-hover: #2ebd7d;
-  --accent-light: rgba(62, 207, 142, 0.12);
+  --accent: #1c1c1c;
+  --accent-hover: rgba(28, 28, 28, 0.85);
+  --accent-light: rgba(28, 28, 28, 0.05);
   
-  --shadow-popup: 0 16px 40px -8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  --shadow-sidebar: -16px 0 48px rgba(0, 0, 0, 0.75), -1px 0 0 0 rgba(255, 255, 255, 0.08);
-  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --button-inset: rgba(255, 255, 255, 0.2) 0px 0.5px 0px 0px inset, rgba(0, 0, 0, 0.2) 0px 0px 0px 0.5px inset, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
+  --focus-shadow: rgba(0, 0, 0, 0.08) 0px 4px 12px;
   
-  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --shadow-popup: 0 12px 36px rgba(28, 28, 28, 0.12), 0 0 0 1px #eceae4;
+  --shadow-sidebar: -12px 0 36px rgba(28, 28, 28, 0.08), -1px 0 0 0 #eceae4;
+  --shadow-card: 0 1px 4px rgba(28, 28, 28, 0.04);
+  
+  --font-family: 'Camera Plain Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   
   font-family: var(--font-family);
@@ -39,18 +44,16 @@ export const CSS_STYLES = `
   position: fixed;
   bottom: 24px;
   right: 24px;
-  height: 48px;
-  background: rgba(14, 16, 21, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  height: 44px;
+  background: #f7f4ed;
+  border: 1px solid #eceae4;
+  border-radius: 9999px;
+  box-shadow: 0 4px 20px rgba(28, 28, 28, 0.12);
   cursor: grab;
   display: flex;
   align-items: center;
-  padding: 4px;
-  gap: 4px;
+  padding: 3px 6px;
+  gap: 3px;
   z-index: 2147483646;
   transition: border-color 0.2s, box-shadow 0.2s;
   user-select: none;
@@ -62,34 +65,42 @@ export const CSS_STYLES = `
 }
 
 .annoty-toggle:hover {
-  border-color: var(--accent);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 16px rgba(62, 207, 142, 0.25);
+  border-color: rgba(28, 28, 28, 0.4);
+}
+
+.annoty-toggle-grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8a8880;
+  cursor: grab;
+  padding: 0 2px 0 4px;
 }
 
 .annoty-control-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
   border: none;
   background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-primary);
-  transition: background-color 0.2s, color 0.2s;
+  color: #1c1c1c;
+  transition: all 0.15s ease;
   position: relative;
   padding: 0;
 }
 
 .annoty-control-btn:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(28, 28, 28, 0.05);
 }
 
 .annoty-control-btn.active {
-  background-color: var(--accent);
-  color: #0b0c0e;
-  box-shadow: 0 0 12px rgba(62, 207, 142, 0.4);
+  background-color: #1c1c1c;
+  color: #fcfbf8;
+  box-shadow: var(--button-inset);
 }
 
 .annoty-control-btn svg {
@@ -104,7 +115,7 @@ export const CSS_STYLES = `
   position: absolute;
   top: -2px;
   right: -2px;
-  background-color: var(--text-error);
+  background-color: #dc2626;
   color: white;
   font-size: 9px;
   font-weight: 700;
@@ -115,7 +126,7 @@ export const CSS_STYLES = `
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   pointer-events: none;
   box-sizing: border-box;
 }
@@ -125,9 +136,9 @@ export const CSS_STYLES = `
    ========================================================================== */
 .annoty-highlight {
   position: fixed;
-  border: 1.5px solid var(--accent);
-  background: rgba(62, 207, 142, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(62, 207, 142, 0.25), 0 0 16px rgba(62, 207, 142, 0.15);
+  border: 2px solid #1c1c1c;
+  background: rgba(28, 28, 28, 0.04);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
   pointer-events: none;
   z-index: 2147483640;
   transition: all 0.06s ease-out;
@@ -143,7 +154,7 @@ export const CSS_STYLES = `
   position: absolute;
   width: 8px;
   height: 8px;
-  border-color: #3ecf8e;
+  border-color: #1c1c1c;
   border-style: solid;
   pointer-events: none;
 }
@@ -179,13 +190,11 @@ export const CSS_STYLES = `
 /* Floating Inspector Badge / Tooltip */
 .annoty-picker-tooltip {
   position: fixed;
-  height: 26px;
-  background: rgba(11, 12, 14, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  height: 28px;
+  background: #1c1c1c;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   padding: 0 8px;
   display: flex;
   align-items: center;
@@ -201,16 +210,16 @@ export const CSS_STYLES = `
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
-  color: var(--accent);
+  color: #fcfbf8;
 }
 
 .annoty-tooltip-comp {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
-  color: #60a5fa;
-  background: rgba(96, 165, 250, 0.12);
-  border: 1px solid rgba(96, 165, 250, 0.25);
+  font-weight: 500;
+  color: #93c5fd;
+  background: rgba(147, 197, 253, 0.15);
+  border: 1px solid rgba(147, 197, 253, 0.25);
   padding: 0 4px;
   border-radius: 3px;
 }
@@ -218,17 +227,16 @@ export const CSS_STYLES = `
 .annoty-tooltip-dim {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.06);
+  color: #d1d5db;
+  background: rgba(255, 255, 255, 0.1);
   padding: 1px 5px;
   border-radius: 3px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .annoty-tooltip-hint {
   font-size: 9px;
-  font-weight: 600;
-  color: var(--text-dim);
+  font-weight: 500;
+  color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-left: 2px;
@@ -251,7 +259,7 @@ export const CSS_STYLES = `
   position: fixed;
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: 9999px;
   transform: translate(-50%, -50%);
   cursor: pointer;
   pointer-events: auto;
@@ -260,9 +268,10 @@ export const CSS_STYLES = `
   justify-content: center;
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 700;
-  color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55), 0 0 0 1.5px rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  background: #1c1c1c;
+  color: #fcfbf8;
+  box-shadow: var(--button-inset);
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
   user-select: none;
   box-sizing: border-box;
@@ -270,7 +279,7 @@ export const CSS_STYLES = `
 
 .annoty-pin:hover {
   transform: translate(-50%, -50%) scale(1.2);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7), 0 0 0 2px #ffffff;
+  box-shadow: 0 4px 14px rgba(28, 28, 28, 0.3), var(--button-inset);
   z-index: 2147483647;
 }
 
@@ -283,8 +292,9 @@ export const CSS_STYLES = `
 .annoty-pin-pulse {
   position: absolute;
   inset: -3px;
-  border-radius: 50%;
+  border-radius: 9999px;
   opacity: 0.6;
+  border: 2px solid rgba(28, 28, 28, 0.35);
   pointer-events: none;
   animation: annoty-pin-radar 2.5s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
@@ -306,29 +316,23 @@ export const CSS_STYLES = `
 
 /* Pin States */
 .annoty-pin-state-pending {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-.annoty-pin-state-pending .annoty-pin-pulse {
-  border: 2px solid #10b981;
+  background: #1c1c1c;
 }
 
 .annoty-pin-state-in_progress {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-}
-.annoty-pin-state-in_progress .annoty-pin-pulse {
-  border: 2px solid #3b82f6;
+  background: #2563eb;
 }
 
 .annoty-pin-state-resolved {
-  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
-  opacity: 0.75;
+  background: #4b5563;
+  opacity: 0.7;
 }
 .annoty-pin-state-resolved .annoty-pin-pulse {
   display: none;
 }
 
 .annoty-pin-state-ignored {
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  background: #9ca3af;
   opacity: 0.5;
 }
 .annoty-pin-state-ignored .annoty-pin-pulse {
@@ -337,33 +341,24 @@ export const CSS_STYLES = `
 
 /* Pin Severities */
 .annoty-pin-sev-critical {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.6), 0 0 0 1.5px rgba(255, 255, 255, 0.3) !important;
+  background: #dc2626 !important;
 }
 .annoty-pin-sev-critical .annoty-pin-pulse {
-  border: 2px solid #ef4444 !important;
+  border-color: #dc2626 !important;
 }
-
-.annoty-pin-sev-high {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.5), 0 0 0 1.5px rgba(255, 255, 255, 0.3) !important;
-}
-.annoty-pin-sev-high .annoty-pin-pulse {
-  border: 2px solid #f59e0b !important;
-}
-
 
 /* ==========================================================================
-   Popup Dialog (Click annotation input)
+   Popup Dialog (Draggable Annotation Tab)
    ========================================================================== */
 .annoty-popup {
   position: fixed;
-  width: 320px;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+  width: 350px;
+  max-width: 92vw;
+  background-color: #f7f4ed;
+  border: 1px solid #eceae4;
+  border-radius: 12px;
   box-shadow: var(--shadow-popup);
-  z-index: 999998;
+  z-index: 2147483645;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -373,58 +368,128 @@ export const CSS_STYLES = `
 
 .annoty-popup-header {
   padding: 12px 16px;
-  background-color: var(--bg-main);
-  border-bottom: 1px solid var(--border-subtle);
+  background-color: #f7f4ed;
+  border-bottom: 1px solid #eceae4;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  cursor: grab;
+  user-select: none;
+}
+
+.annoty-popup-header:active {
+  cursor: grabbing;
+}
+
+.annoty-popup-drag-handle {
+  display: flex;
+  align-items: center;
+  color: #8a8880;
+  margin-right: 8px;
+  cursor: grab;
+}
+
+.annoty-popup-title-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
 }
 
 .annoty-popup-title {
   font-weight: 600;
-  font-size: 13px;
-  color: var(--text-primary);
+  font-size: 14px;
+  color: #1c1c1c;
   margin: 0;
+}
+
+.annoty-specs-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.annoty-spec-pill {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  background: #ffffff;
+  border: 1px solid #eceae4;
+  color: #5f5f5d;
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 .annoty-popup-close {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-muted);
+  color: #5f5f5d;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
 }
 
 .annoty-popup-close:hover {
-  color: var(--text-primary);
+  background-color: rgba(28, 28, 28, 0.05);
+  color: #1c1c1c;
 }
 
-.annoty-popup-close svg {
-  width: 16px;
-  height: 16px;
-  stroke: currentColor;
-  stroke-width: 2;
+.annoty-breadcrumbs-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 16px;
+  background: #eceae4;
+  border-bottom: 1px solid #e2dfd7;
+  overflow-x: auto;
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+
+.annoty-crumb {
+  color: #5f5f5d;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.annoty-crumb:hover {
+  background: #ffffff;
+  color: #1c1c1c;
+}
+
+.annoty-crumb.is-target {
+  color: #1c1c1c;
+  font-weight: 600;
+  background: #ffffff;
+}
+
+.annoty-crumb-sep {
+  color: #8a8880;
+  font-size: 10px;
 }
 
 .annoty-popup-body {
-  padding: 16px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   box-sizing: border-box;
 }
 
 .annoty-element-preview {
-  background-color: var(--bg-main);
-  border: 1px solid var(--border-subtle);
-  border-radius: 4px;
+  background-color: #ffffff;
+  border: 1px solid #eceae4;
+  border-radius: 6px;
   padding: 8px 10px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--accent);
+  color: #1c1c1c;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -432,58 +497,78 @@ export const CSS_STYLES = `
 
 .annoty-source-preview {
   font-size: 11px;
-  color: var(--text-muted);
+  color: #5f5f5d;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.annoty-source-preview svg {
-  width: 12px;
-  height: 12px;
-  stroke: currentColor;
-  stroke-width: 2;
-  fill: none;
+.annoty-diagnostics-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.annoty-diag-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.annoty-diag-warning {
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  color: #b45309;
+}
+
+.annoty-diag-icon {
+  font-weight: 700;
+  font-family: var(--font-mono);
 }
 
 .annoty-textarea {
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background-color: #ffffff;
+  border: 1px solid #eceae4;
   border-radius: 6px;
-  color: var(--text-primary);
-  padding: 8px 10px;
+  color: #1c1c1c;
+  padding: 10px 12px;
   font-family: var(--font-family);
   font-size: 13px;
   resize: vertical;
-  min-height: 80px;
+  min-height: 85px;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
   box-sizing: border-box;
 }
 
 .annoty-textarea:focus {
-  border-color: var(--border-focus);
+  border-color: rgba(28, 28, 28, 0.4);
+  box-shadow: var(--focus-shadow);
 }
 
 .annoty-popup-footer {
   padding: 12px 16px;
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid #eceae4;
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  background-color: var(--bg-main);
+  background-color: #f7f4ed;
 }
 
 /* Common button styles */
 .annoty-btn {
   font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 500;
-  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 400;
+  padding: 7px 14px;
   border-radius: 6px;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, opacity 0.15s;
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -491,38 +576,42 @@ export const CSS_STYLES = `
 }
 
 .annoty-btn-primary {
-  background-color: var(--accent);
-  color: #0b0b0d;
+  background-color: #1c1c1c;
+  color: #fcfbf8;
+  box-shadow: var(--button-inset);
 }
 
 .annoty-btn-primary:hover {
-  background-color: var(--accent-hover);
+  opacity: 0.9;
+}
+
+.annoty-btn-primary:active {
+  opacity: 0.8;
 }
 
 .annoty-btn-secondary {
   background-color: transparent;
-  border-color: var(--border-subtle);
-  color: var(--text-primary);
+  border-color: #eceae4;
+  color: #1c1c1c;
 }
 
 .annoty-btn-secondary:hover {
-  background-color: var(--bg-input);
-  border-color: var(--text-muted);
+  background-color: rgba(28, 28, 28, 0.04);
+  border-color: rgba(28, 28, 28, 0.4);
 }
 
 .annoty-btn-danger {
-  background-color: rgba(248, 113, 113, 0.1);
-  border-color: rgba(248, 113, 113, 0.2);
-  color: var(--text-error);
+  background-color: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.2);
+  color: #dc2626;
 }
 
 .annoty-btn-danger:hover {
-  background-color: rgba(248, 113, 113, 0.2);
-  border-color: var(--text-error);
+  background-color: rgba(220, 38, 38, 0.15);
 }
 
 .annoty-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -535,10 +624,8 @@ export const CSS_STYLES = `
   right: 0;
   width: 380px;
   height: 100vh;
-  background-color: var(--bg-surface-glass);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-left: 1px solid var(--border-subtle);
+  background-color: #f7f4ed;
+  border-left: 1px solid #eceae4;
   box-shadow: var(--shadow-sidebar);
   z-index: 2147483644;
   display: flex;
@@ -554,18 +641,19 @@ export const CSS_STYLES = `
 
 .annoty-sidebar-header {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid #eceae4;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: rgba(11, 12, 14, 0.65);
+  background-color: #f7f4ed;
 }
 
 .annoty-sidebar-title {
   margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  color: #1c1c1c;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -574,7 +662,7 @@ export const CSS_STYLES = `
 .annoty-sidebar-title svg {
   width: 18px;
   height: 18px;
-  stroke: var(--accent);
+  stroke: #1c1c1c;
   stroke-width: 2;
   fill: none;
 }
@@ -584,12 +672,12 @@ export const CSS_STYLES = `
   align-items: center;
   gap: 5px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--accent);
-  background: rgba(62, 207, 142, 0.1);
-  border: 1px solid rgba(62, 207, 142, 0.2);
+  color: #1c1c1c;
+  background: rgba(28, 28, 28, 0.06);
+  border: 1px solid #eceae4;
   padding: 2px 7px;
   border-radius: 9999px;
 }
@@ -597,11 +685,245 @@ export const CSS_STYLES = `
 .annoty-status-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
-  background-color: var(--accent);
-  box-shadow: 0 0 6px var(--accent);
+  border-radius: 9999px;
+  background-color: #1c1c1c;
 }
 
+.annoty-sidebar-tabs {
+  display: flex;
+  background: #eceae4;
+  border-radius: 9999px;
+  margin: 12px 16px 4px 16px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.annoty-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  font-family: var(--font-family);
+  font-size: 12px;
+  font-weight: 400;
+  color: #5f5f5d;
+  border-radius: 9999px;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.annoty-tab-btn:hover {
+  color: #1c1c1c;
+}
+
+.annoty-tab-btn.active {
+  color: #1c1c1c;
+  background: #ffffff;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(28, 28, 28, 0.08);
+}
+
+/* ==========================================================================
+   Smooth Group Bar & Collapsible Group Organizer Drawer
+   ========================================================================== */
+.annoty-group-bar {
+  padding: 10px 16px;
+  border-bottom: 1px solid #eceae4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #f7f4ed;
+}
+
+.annoty-group-pill-btn {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #eceae4;
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #1c1c1c;
+  font-family: var(--font-family);
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.annoty-group-pill-btn:hover {
+  border-color: rgba(28, 28, 28, 0.35);
+  background: #faf8f5;
+}
+
+.annoty-group-pill-icon {
+  display: flex;
+  align-items: center;
+  color: #5f5f5d;
+}
+
+.annoty-group-active-name {
+  font-weight: 500;
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annoty-group-badge-count {
+  font-size: 10px;
+  font-weight: 600;
+  background: #f7f4ed;
+  border: 1px solid #eceae4;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  color: #5f5f5d;
+}
+
+.annoty-group-chevron {
+  transition: transform 0.2s ease;
+  color: #8a8880;
+}
+
+.annoty-group-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.annoty-group-drawer {
+  background-color: #faf8f5;
+  border-bottom: 1px solid #eceae4;
+  padding: 12px 16px;
+  animation: annoty-slide-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.annoty-group-drawer-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.annoty-group-create-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.annoty-group-create-input {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #eceae4;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: var(--font-family);
+  color: #1c1c1c;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.annoty-group-create-input:focus {
+  border-color: rgba(28, 28, 28, 0.4);
+}
+
+.annoty-group-drawer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.annoty-group-drawer-item {
+  background: #ffffff;
+  border: 1px solid #eceae4;
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.annoty-group-drawer-item:hover {
+  border-color: rgba(28, 28, 28, 0.3);
+}
+
+.annoty-group-drawer-item.is-active {
+  border-color: rgba(28, 28, 28, 0.6);
+  background: #fdfcf9;
+}
+
+.annoty-group-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.annoty-group-item-radio {
+  font-size: 11px;
+  color: #1c1c1c;
+}
+
+.annoty-group-item-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1c1c1c;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.annoty-group-item-count {
+  font-size: 10px;
+  color: #8a8880;
+  background: #f7f4ed;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.annoty-group-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.annoty-group-rename-input {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid rgba(28, 28, 28, 0.4);
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 12px;
+  color: #1c1c1c;
+  outline: none;
+}
+
+.annoty-btn-confirm-delete {
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.annoty-btn-confirm-delete:hover {
+  opacity: 0.9;
+}
+
+/* ==========================================================================
+   Annotation Cards & Lists
+   ========================================================================== */
 .annoty-sidebar-list {
   flex: 1;
   overflow-y: auto;
@@ -612,7 +934,6 @@ export const CSS_STYLES = `
   box-sizing: border-box;
 }
 
-/* Custom Scrollbar for list and preview */
 .annoty-sidebar-list::-webkit-scrollbar,
 .annoty-preview-area::-webkit-scrollbar {
   width: 6px;
@@ -620,7 +941,7 @@ export const CSS_STYLES = `
 
 .annoty-sidebar-list::-webkit-scrollbar-thumb,
 .annoty-preview-area::-webkit-scrollbar-thumb {
-  background-color: var(--border-subtle-bright);
+  background-color: #eceae4;
   border-radius: 3px;
 }
 
@@ -631,10 +952,8 @@ export const CSS_STYLES = `
 
 /* Annotation List Item Card */
 .annoty-item {
-  background: rgba(22, 25, 32, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #eceae4;
   border-radius: 10px;
   padding: 14px;
   display: flex;
@@ -647,9 +966,8 @@ export const CSS_STYLES = `
 }
 
 .annoty-item:hover {
-  border-color: rgba(62, 207, 142, 0.35);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+  border-color: rgba(28, 28, 28, 0.35);
+  box-shadow: 0 4px 12px rgba(28, 28, 28, 0.06);
 }
 
 .annoty-item-header {
@@ -672,85 +990,96 @@ export const CSS_STYLES = `
 }
 
 .annoty-item-badge {
-  background: linear-gradient(135deg, rgba(62, 207, 142, 0.2) 0%, rgba(62, 207, 142, 0.05) 100%);
-  border: 1px solid rgba(62, 207, 142, 0.3);
-  color: var(--accent);
+  background: #1c1c1c;
+  color: #fcfbf8;
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   width: 22px;
   height: 22px;
-  border-radius: 50%;
+  border-radius: 9999px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: var(--button-inset);
 }
 
 .annoty-item-tag {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
-  color: var(--accent);
-  background-color: rgba(11, 12, 14, 0.8);
+  font-weight: 500;
+  color: #1c1c1c;
+  background-color: #f7f4ed;
   padding: 2px 7px;
   border-radius: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #eceae4;
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.annoty-item-dim {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: #5f5f5d;
+  background: #f7f4ed;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid #eceae4;
+}
+
+.annoty-item-status-pill {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.annoty-item-status-pending {
+  background: rgba(217, 119, 6, 0.1);
+  color: #b45309;
+  border-color: rgba(217, 119, 6, 0.25);
+}
+
+.annoty-item-status-resolved {
+  background: rgba(28, 28, 28, 0.08);
+  color: #1c1c1c;
+  border-color: rgba(28, 28, 28, 0.2);
+}
+
 .annoty-item-file {
   font-size: 11px;
-  color: var(--text-muted);
+  color: #5f5f5d;
   word-break: break-all;
   padding-left: 2px;
 }
 
-.annoty-item-chips {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-  padding-left: 2px;
+.annoty-item-instruction {
+  font-size: 13px;
+  color: #1c1c1c;
+  margin: 0;
+  word-break: break-word;
+  white-space: pre-wrap;
+  line-height: 1.5;
 }
 
-.annoty-chip {
-  font-size: 9px;
-  font-weight: 600;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.annoty-chip-color {
-  background-color: rgba(62, 207, 142, 0.1);
-  border-color: rgba(62, 207, 142, 0.2);
-  color: var(--accent);
-}
-
-.annoty-chip-typography {
-  background-color: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-}
-
-.annoty-chip-size {
-  background-color: rgba(245, 158, 11, 0.1);
-  border-color: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-}
-
-.annoty-chip-spacing {
-  background-color: rgba(168, 85, 247, 0.1);
-  border-color: rgba(168, 85, 247, 0.2);
-  color: #c084fc;
+.annoty-item-thumb {
+  max-width: 100%;
+  max-height: 90px;
+  border-radius: 6px;
+  border: 1px solid #eceae4;
+  margin-top: 6px;
+  cursor: pointer;
+  object-fit: cover;
+  display: block;
 }
 
 .annoty-item-actions {
@@ -763,7 +1092,7 @@ export const CSS_STYLES = `
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-muted);
+  color: #5f5f5d;
   padding: 4px;
   border-radius: 4px;
   display: flex;
@@ -773,13 +1102,13 @@ export const CSS_STYLES = `
 }
 
 .annoty-icon-btn:hover {
-  background-color: var(--bg-input);
-  color: var(--text-primary);
+  background-color: rgba(28, 28, 28, 0.05);
+  color: #1c1c1c;
 }
 
 .annoty-icon-btn-danger:hover {
-  background-color: rgba(248, 113, 113, 0.15);
-  color: var(--text-error);
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
 }
 
 .annoty-icon-btn svg {
@@ -790,14 +1119,6 @@ export const CSS_STYLES = `
   fill: none;
 }
 
-.annoty-item-instruction {
-  font-size: 13px;
-  color: var(--text-primary);
-  margin: 0;
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-
 .annoty-empty-state {
   display: flex;
   flex-direction: column;
@@ -805,34 +1126,37 @@ export const CSS_STYLES = `
   justify-content: center;
   flex: 1;
   text-align: center;
-  color: var(--text-muted);
-  gap: 12px;
-  padding: 32px;
+  color: #5f5f5d;
+  gap: 10px;
+  padding: 32px 16px;
 }
 
 .annoty-empty-state svg {
-  width: 48px;
-  height: 48px;
-  stroke: var(--border-subtle);
+  width: 44px;
+  height: 44px;
+  stroke: #eceae4;
   stroke-width: 1.5;
   fill: none;
 }
 
 .annoty-empty-text {
   font-size: 14px;
+  font-weight: 500;
+  color: #1c1c1c;
   margin: 0;
 }
 
 .annoty-empty-subtext {
   font-size: 12px;
   margin: 0;
-  max-width: 200px;
+  max-width: 220px;
+  line-height: 1.4;
 }
 
 .annoty-sidebar-footer {
   padding: 16px;
-  border-top: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface);
+  border-top: 1px solid #eceae4;
+  background-color: #f7f4ed;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -857,7 +1181,7 @@ export const CSS_STYLES = `
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--bg-main);
+  background-color: #f7f4ed;
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -866,9 +1190,9 @@ export const CSS_STYLES = `
 }
 
 .annoty-preview-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface);
+  padding: 14px 16px;
+  border-bottom: 1px solid #eceae4;
+  background-color: #f7f4ed;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -876,8 +1200,40 @@ export const CSS_STYLES = `
 
 .annoty-preview-title {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
+  color: #1c1c1c;
+}
+
+.annoty-preview-format-tabs {
+  display: flex;
+  background: #eceae4;
+  border-radius: 9999px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.annoty-format-btn {
+  background: transparent;
+  border: none;
+  color: #5f5f5d;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.annoty-format-btn:hover {
+  color: #1c1c1c;
+}
+
+.annoty-format-btn.active {
+  background: #ffffff;
+  color: #1c1c1c;
+  box-shadow: 0 1px 3px rgba(28, 28, 28, 0.08);
 }
 
 .annoty-preview-body {
@@ -891,13 +1247,13 @@ export const CSS_STYLES = `
 
 .annoty-preview-area {
   flex: 1;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
+  background-color: #ffffff;
+  border: 1px solid #eceae4;
   border-radius: 6px;
   padding: 12px;
-  font-family: monospace;
+  font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--text-primary);
+  color: #1c1c1c;
   white-space: pre-wrap;
   word-break: break-all;
   overflow-y: auto;
@@ -906,9 +1262,9 @@ export const CSS_STYLES = `
 }
 
 .annoty-preview-footer {
-  padding: 16px;
-  border-top: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface);
+  padding: 14px 16px;
+  border-top: 1px solid #eceae4;
+  background-color: #f7f4ed;
   display: flex;
   gap: 8px;
 }
@@ -916,157 +1272,6 @@ export const CSS_STYLES = `
 .annoty-preview-footer .annoty-btn {
   flex: 1;
   justify-content: center;
-}
-
-/* ==========================================================================
-   Animations
-   ========================================================================== */
-@keyframes annoty-fade-in {
-  from { opacity: 0; transform: scale(0.96); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes annoty-slide-up {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.annoty-toast {
-  position: absolute;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--accent);
-  color: #0b0b0d;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 8px 16px;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s, transform 0.2s;
-  z-index: 100;
-}
-
-.annoty-toast.show {
-  opacity: 1;
-  transform: translate(-50%, -5px);
-}
-
-/* ==========================================================================
-   Sidebar Tabs & Group Switcher
-   ========================================================================== */
-.annoty-sidebar-tabs {
-  display: flex;
-  background: rgba(0, 0, 0, 0.4);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 6px 16px;
-  gap: 6px;
-}
-
-.annoty-tab-btn {
-  flex: 1;
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  padding: 6px 12px;
-  font-family: var(--font-family);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted);
-  border-radius: 6px;
-  text-align: center;
-  transition: all 0.15s ease;
-}
-
-.annoty-tab-btn:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.annoty-tab-btn.active {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.1);
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-}
-
-.annoty-group-selector {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-subtle);
-  background-color: var(--bg-surface);
-  display: flex;
-  align-items: center;
-  gap: 12px; /* Visual spacing separating '+' button from dropdown/edit/delete cluster */
-  box-sizing: border-box;
-}
-
-.annoty-group-main-area {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.annoty-group-select {
-  width: 100%;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-family: var(--font-family);
-  font-size: 13px;
-  outline: none;
-  cursor: pointer;
-  box-sizing: border-box;
-  height: 32px;
-}
-
-.annoty-group-select:focus {
-  border-color: var(--accent);
-}
-
-.annoty-group-placeholder {
-  width: 100%;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-family: var(--font-family);
-  font-size: 13px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  cursor: not-allowed;
-}
-
-.annoty-group-inline-input {
-  width: 100%;
-  background-color: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  border-radius: 6px;
-  padding: 6px 10px;
-  font-family: var(--font-family);
-  font-size: 13px;
-  outline: none;
-  box-sizing: border-box;
-  height: 32px;
-  transition: border-color 0.15s;
-}
-
-.annoty-group-inline-input:focus {
-  border-color: var(--accent);
-}
-
-.annoty-group-actions {
-  display: flex;
-  gap: 4px;
 }
 
 /* History Row specific styling */
@@ -1093,17 +1298,12 @@ export const CSS_STYLES = `
 .annoty-history-group-name {
   font-weight: 600;
   font-size: 13px;
-  color: var(--text-primary);
+  color: #1c1c1c;
 }
 
 .annoty-history-time {
-  font-size: 10px;
-  color: var(--text-muted);
-}
-
-.annoty-history-actions {
-  display: flex;
-  gap: 4px;
+  font-size: 11px;
+  color: #5f5f5d;
 }
 
 .annoty-history-meta {
@@ -1111,346 +1311,47 @@ export const CSS_STYLES = `
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: var(--accent);
-  background-color: var(--bg-main);
-  border: 1px solid var(--border-subtle);
+  color: #5f5f5d;
+  background-color: #f7f4ed;
+  border: 1px solid #eceae4;
   padding: 2px 6px;
   border-radius: 4px;
   width: fit-content;
 }
 
 /* ==========================================================================
-   Advanced Inspector, Breadcrumbs, Chips & Diagnostics
+   Animations & Toast
    ========================================================================== */
-.annoty-popup-advanced {
-  width: 360px !important;
-  max-width: 92vw !important;
+@keyframes annoty-fade-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-.annoty-popup-title-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+@keyframes annoty-slide-up {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
 
-.annoty-specs-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.annoty-spec-pill {
-  font-size: 10px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-
-.annoty-breadcrumbs-bar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 16px;
-  background: #111418;
-  border-bottom: 1px solid var(--border-subtle);
-  overflow-x: auto;
-  font-size: 11px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-.annoty-crumb {
-  color: var(--text-muted);
-  cursor: pointer;
-  white-space: nowrap;
-  padding: 2px 4px;
-  border-radius: 3px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.annoty-crumb:hover {
-  background: var(--bg-surface);
-  color: var(--accent);
-}
-
-.annoty-crumb.is-target {
-  color: var(--accent);
-  font-weight: 600;
-  background: rgba(62, 207, 142, 0.1);
-}
-
-.annoty-crumb-sep {
-  color: #484f58;
-  font-size: 10px;
-}
-
-.annoty-diagnostics-bar {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.annoty-diag-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 6px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-.annoty-diag-warning {
-  background: rgba(210, 153, 34, 0.15);
-  border: 1px solid rgba(210, 153, 34, 0.4);
-  color: #e3b341;
-}
-
-.annoty-diag-info {
-  background: rgba(88, 166, 255, 0.15);
-  border: 1px solid rgba(88, 166, 255, 0.4);
-  color: #79c0ff;
-}
-
-.annoty-diag-icon {
-  font-weight: 700;
-  font-family: ui-monospace, monospace;
-}
-
-.annoty-chips-section {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 8px;
-}
-
-.annoty-chips-label {
-  font-size: 10px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: var(--text-muted);
-  letter-spacing: 0.5px;
-}
-
-.annoty-chips-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.annoty-chip {
-  background: var(--bg-input);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.annoty-chip:hover {
-  border-color: var(--accent);
-  color: var(--text-primary);
-}
-
-.annoty-chip.is-active {
-  background: var(--accent);
-  color: #121214;
-  border-color: var(--accent);
-  font-weight: 600;
-}
-
-.annoty-chip-sev-critical.is-active {
-  background: #da3633;
-  color: #ffffff;
-  border-color: #da3633;
-}
-
-.annoty-chip-sev-high.is-active {
-  background: #d29922;
-  color: #ffffff;
-  border-color: #d29922;
-}
-
-/* ==========================================================================
-   Multi-Format Selector & Enhanced Item Card Styles
-   ========================================================================== */
-.annoty-preview-format-tabs {
-  display: flex;
-  background: var(--bg-main);
-  border-radius: 6px;
-  padding: 2px;
-  gap: 2px;
-  border: 1px solid var(--border-subtle);
-}
-
-.annoty-format-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 500;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.annoty-format-btn:hover {
-  color: var(--text-primary);
-}
-
-.annoty-format-btn.active {
-  background: var(--bg-surface);
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.annoty-item-dim {
-  font-size: 10px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  color: var(--text-muted);
-  background: var(--bg-main);
-  padding: 1px 6px;
-  border-radius: 3px;
-  border: 1px solid var(--border-subtle);
-}
-
-.annoty-item-status-pill {
-  font-size: 9px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.15s ease;
-  user-select: none;
-}
-
-.annoty-item-status-pending {
-  background: rgba(210, 153, 34, 0.15);
-  color: #e3b341;
-  border-color: rgba(210, 153, 34, 0.3);
-}
-
-.annoty-item-status-pending:hover {
-  background: rgba(210, 153, 34, 0.25);
-}
-
-.annoty-item-status-resolved {
-  background: rgba(62, 207, 142, 0.15);
-  color: var(--accent);
-  border-color: rgba(62, 207, 142, 0.3);
-}
-
-.annoty-item-status-resolved:hover {
-  background: rgba(62, 207, 142, 0.25);
-}
-
-.annoty-item-diag-badge {
-  font-size: 9px;
-  font-weight: 600;
-  background: rgba(248, 113, 113, 0.15);
-  color: var(--text-error);
-  border: 1px solid rgba(248, 113, 113, 0.3);
-  padding: 1px 5px;
-  border-radius: 3px;
-}
-
-.annoty-item-thumb {
-  max-width: 100%;
-  max-height: 90px;
-  border-radius: 4px;
-  border: 1px solid var(--border-subtle);
-  margin-top: 6px;
-  cursor: pointer;
-  object-fit: cover;
-  display: block;
-}
-
-.annoty-diff-modal {
-  position: fixed;
-  top: 50%;
+.annoty-toast {
+  position: absolute;
+  bottom: 80px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 480px;
-  max-width: 90vw;
-  max-height: 85vh;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  box-shadow: var(--shadow-popup);
-  z-index: 1000001;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.annoty-diff-header {
-  padding: 12px 16px;
-  background: var(--bg-main);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.annoty-diff-title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.annoty-diff-body {
-  padding: 16px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.annoty-diff-table {
-  width: 100%;
-  border-collapse: collapse;
+  transform: translateX(-50%);
+  background-color: #1c1c1c;
+  color: #fcfbf8;
   font-size: 12px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  box-shadow: var(--button-inset);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 100;
 }
 
-.annoty-diff-table th {
-  text-align: left;
-  padding: 6px 8px;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  font-size: 11px;
-}
-
-.annoty-diff-table td {
-  padding: 6px 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.annoty-diff-before {
-  color: #f87171;
-  text-decoration: line-through;
-}
-
-.annoty-diff-after {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.annoty-diff-delta {
-  background: rgba(62, 207, 142, 0.15);
-  color: var(--accent);
-  padding: 1px 4px;
-  border-radius: 3px;
-  font-size: 10px;
+.annoty-toast.show {
+  opacity: 1;
+  transform: translate(-50%, -5px);
 }
 `;
