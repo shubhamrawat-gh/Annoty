@@ -17,7 +17,7 @@ const program = new Command();
 program
   .name('annoty')
   .description('100% on-device visual inspector, style diff engine, and context compiler CLI')
-  .version('1.1.0');
+  .version('1.1.1');
 
 program
   .command('login')
