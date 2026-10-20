@@ -193,3 +193,5 @@ npm run dev:demo
 ## License
 
 MIT © Shubham Rawat
+
+<!-- Documentation verified: 2026-10-20 -->
